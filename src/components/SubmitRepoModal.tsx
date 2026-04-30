@@ -58,7 +58,7 @@ export default function SubmitRepoModal({ isOpen, onClose }: Props) {
       >
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-muted hover:text-white transition-colors text-lg leading-none"
+          className="absolute top-4 right-4 text-muted hover:text-foreground transition-colors text-lg leading-none"
           aria-label="Close"
         >
           ✕
@@ -67,7 +67,7 @@ export default function SubmitRepoModal({ isOpen, onClose }: Props) {
         {status === "success" ? (
           <div className="text-center py-4">
             <div className="text-4xl mb-4">🎉</div>
-            <h2 className="text-white font-bold text-xl mb-2">Repo submitted!</h2>
+            <h2 className="text-foreground font-bold text-xl mb-2">Repo submitted!</h2>
             <p className="text-muted text-sm mb-6 leading-relaxed">{message}</p>
             <button
               onClick={handleClose}
@@ -78,7 +78,7 @@ export default function SubmitRepoModal({ isOpen, onClose }: Props) {
           </div>
         ) : (
           <>
-            <h2 className="text-white font-bold text-xl mb-1">Submit a Repo</h2>
+            <h2 className="text-foreground font-bold text-xl mb-1">Submit a Repo</h2>
             <p className="text-muted text-sm mb-6">Know a gem? Add it to the Stella discovery pool.</p>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -92,7 +92,7 @@ export default function SubmitRepoModal({ isOpen, onClose }: Props) {
                   onChange={e => setUrl(e.target.value)}
                   placeholder="https://github.com/owner/repo"
                   required
-                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted/50 focus:outline-none focus:border-accent transition-colors"
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground text-sm placeholder:text-muted/50 focus:outline-none focus:border-accent transition-colors"
                 />
               </div>
 
@@ -106,7 +106,7 @@ export default function SubmitRepoModal({ isOpen, onClose }: Props) {
                   onChange={e => setNote(e.target.value)}
                   placeholder="One sentence about why this repo is worth discovering..."
                   rows={2}
-                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted/50 focus:outline-none focus:border-accent transition-colors resize-none"
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground text-sm placeholder:text-muted/50 focus:outline-none focus:border-accent transition-colors resize-none"
                 />
               </div>
 

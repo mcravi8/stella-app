@@ -13,6 +13,7 @@ export interface Repo {
   html_url: string;
   owner: { avatar_url: string; login: string };
   contributed_by?: string | null;
+  highlights?: string[];
 }
 
 interface SwipeCardProps {
@@ -118,16 +119,33 @@ export default function SwipeCard({ repo, onSwipe, index }: SwipeCardProps) {
         </div>
 
         <p
-          className="text-foreground/75 text-sm leading-relaxed mb-4 flex-1"
+          className="text-foreground/75 text-sm leading-relaxed mb-3"
           style={{
             display: "-webkit-box",
-            WebkitLineClamp: 7,
+            WebkitLineClamp: repo.highlights?.length ? 4 : 7,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
           }}
         >
           {repo.description || "No description available."}
         </p>
+
+        {repo.highlights && repo.highlights.length > 0 && (
+          <ul className="space-y-1.5 mb-4 flex-1 overflow-hidden">
+            {repo.highlights.slice(0, 3).map((h, i) => (
+              <li key={i} className="flex items-start gap-2 text-foreground/80 text-sm leading-snug">
+                <span className="text-accent mt-1 shrink-0">
+                  <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 8 8">
+                    <circle cx="4" cy="4" r="3" />
+                  </svg>
+                </span>
+                <span>{h}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {!repo.highlights?.length && <div className="flex-1" />}
 
         {repo.topics.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-4">
