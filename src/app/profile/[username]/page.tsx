@@ -69,7 +69,11 @@ export default async function ProfilePage({ params }: Props) {
               {profile && <span className="px-2 py-0.5 bg-accent/20 text-accent text-xs rounded-full font-medium">on Stella</span>}
             </div>
             <p className="text-muted text-sm mb-2">@{username}</p>
-            {ghUser.bio && <p className="text-foreground/70 text-sm mb-3">{ghUser.bio}</p>}
+            {(profile?.bio || ghUser.bio) && (
+              <p className="text-foreground/70 text-sm mb-3 whitespace-pre-wrap">
+                {profile?.bio || ghUser.bio}
+              </p>
+            )}
             <div className="flex gap-4 text-xs text-muted">
               <span><span className="text-foreground font-medium">{ghUser.followers}</span> followers</span>
               <span><span className="text-foreground font-medium">{ghUser.public_repos}</span> repos</span>

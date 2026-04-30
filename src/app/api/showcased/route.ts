@@ -21,9 +21,20 @@ export async function POST(request: Request) {
 
   const { repos } = await request.json();
 
-  await supabase.from("showcased_repos").delete().eq("user_id", user.id);
+  const { error: deleteError } = await supabase
+    .from("showcased_repos")
+    .delete()
+    .eq("user_id", user.id);
+  if (deleteError) {
+    console.error("[/api/showcased] delete failed:", deleteError);
+    return NextResponse.json(
+      { error: "Failed to clear existing showcase", details: deleteError.message },
+      { status: 500 }
+    );
+  }
+
   if (repos?.length) {
-    await supabase.from("showcased_repos").insert(
+    const { error: insertError } = await supabase.from("showcased_repos").insert(
       repos.map((r: { full_name: string; repo_data: unknown }, i: number) => ({
         user_id: user.id,
         repo_full_name: r.full_name,
@@ -31,6 +42,13 @@ export async function POST(request: Request) {
         position: i,
       }))
     );
+    if (insertError) {
+      console.error("[/api/showcased] insert failed:", insertError);
+      return NextResponse.json(
+        { error: "Failed to save showcase", details: insertError.message },
+        { status: 500 }
+      );
+    }
   }
 
   return NextResponse.json({ success: true });
