@@ -40,14 +40,14 @@ export default async function MyReposPage() {
     <div className="min-h-screen bg-background">
       <nav className="border-b border-border sticky top-0 bg-background/90 backdrop-blur-sm z-50">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center gap-4">
-          <Link href="/" className="text-muted hover:text-white transition-colors text-sm">← Back</Link>
+          <Link href="/" className="text-muted hover:text-foreground transition-colors text-sm">← Back</Link>
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 bg-accent rounded-lg flex items-center justify-center">
               <svg viewBox="0 0 64 64" className="w-4 h-4" fill="none">
                 <path d="M20 18h16c4 0 8 3 8 7s-4 7-8 7H28c-2 0-4 1-4 3s2 3 4 3h16v8H28c-4 0-8-3-8-7s4-7 8-7h8c2 0 4-1 4-3s-2-3-4-3H20v-8z" fill="white"/>
               </svg>
             </div>
-            <span className="font-bold text-white text-lg">My Repos</span>
+            <span className="font-bold text-foreground text-lg">My Repos</span>
           </div>
           <div className="ml-auto flex items-center gap-4">
             {contributionCount > 0 && (
@@ -64,7 +64,7 @@ export default async function MyReposPage() {
         {!swipes?.length ? (
           <div className="text-center py-24">
             <div className="text-5xl mb-4">🚀</div>
-            <p className="text-white font-semibold text-xl mb-2">No repos saved yet</p>
+            <p className="text-foreground font-semibold text-xl mb-2">No repos saved yet</p>
             <p className="text-muted text-sm mb-6">Swipe right to fork &amp; save repos you love</p>
             <Link href="/" className="bg-accent hover:bg-[#8B5CF6] text-white px-6 py-3 rounded-xl text-sm font-semibold transition-colors">
               Discover repos
@@ -92,7 +92,7 @@ export default async function MyReposPage() {
                       <span className="ml-auto bg-accent/20 text-accent px-2 py-0.5 rounded-full text-xs shrink-0">{repo.language}</span>
                     )}
                   </div>
-                  <h3 className="text-white font-semibold mb-2 group-hover:text-accent transition-colors truncate">{repo.name}</h3>
+                  <h3 className="text-foreground font-semibold mb-2 group-hover:text-accent transition-colors truncate">{repo.name}</h3>
                   <p className="text-muted text-xs line-clamp-2 mb-3 leading-relaxed">{repo.description || "No description"}</p>
                   <div className="flex items-center gap-3 text-muted text-xs">
                     <span className="flex items-center gap-1">

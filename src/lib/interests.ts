@@ -1,0 +1,38 @@
+export const INTEREST_TAGS: Record<string, string[]> = {
+  Languages: [
+    "JavaScript",
+    "TypeScript",
+    "Python",
+    "Rust",
+    "Go",
+    "Java",
+    "C/C++",
+    "Ruby",
+    "Swift",
+    "Kotlin",
+    "Lua",
+    "Elixir",
+  ],
+  Frameworks: ["React", "Vue", "Svelte", "Next.js", "Astro"],
+  Topics: [
+    "AI / ML",
+    "AI Agents",
+    "LLMs",
+    "Frontend",
+    "Backend",
+    "Mobile",
+    "CLI Tools",
+    "DevOps",
+    "Security",
+    "Games",
+    "Robotics",
+    "Blockchain",
+    "Data Science",
+    "Databases",
+    "Dev Tools",
+    "Education",
+    "Open Source",
+  ],
+};
+
+export const ALL_INTERESTS: string[] = Object.values(INTEREST_TAGS).flat();

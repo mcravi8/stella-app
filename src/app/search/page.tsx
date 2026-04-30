@@ -66,14 +66,14 @@ export default function SearchPage() {
                 <path d="M20 18h16c4 0 8 3 8 7s-4 7-8 7H28c-2 0-4 1-4 3s2 3 4 3h16v8H28c-4 0-8-3-8-7s4-7 8-7h8c2 0 4-1 4-3s-2-3-4-3H20v-8z" fill="white"/>
               </svg>
             </div>
-            <span className="font-bold text-white text-lg">Stella</span>
+            <span className="font-bold text-foreground text-lg">Stella</span>
           </Link>
-          <Link href="/" className="text-muted hover:text-white text-sm transition-colors">← Back</Link>
+          <Link href="/" className="text-muted hover:text-foreground text-sm transition-colors">← Back</Link>
         </div>
       </nav>
 
       <main className="max-w-2xl mx-auto px-4 py-10">
-        <h1 className="text-2xl font-bold text-white mb-2">Search GitHub users</h1>
+        <h1 className="text-2xl font-bold text-foreground mb-2">Search GitHub users</h1>
         <p className="text-muted text-sm mb-8">Find any GitHub account and explore their repos</p>
 
         <form onSubmit={handleSearch} className="flex gap-3 mb-10">
@@ -81,7 +81,7 @@ export default function SearchPage() {
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Enter a GitHub username..."
-            className="flex-1 bg-surface border border-border rounded-xl px-4 py-3 text-white placeholder:text-muted text-sm focus:outline-none focus:border-accent transition-colors"
+            className="flex-1 bg-surface border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted text-sm focus:outline-none focus:border-accent transition-colors"
           />
           <button
             type="submit"
@@ -111,26 +111,26 @@ export default function SearchPage() {
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <h2 className="text-white font-bold text-xl">{result.github_user.name || result.github_user.login}</h2>
+                  <h2 className="text-foreground font-bold text-xl">{result.github_user.name || result.github_user.login}</h2>
                   {result.has_stella_profile && (
                     <span className="px-2 py-0.5 bg-accent/20 text-accent text-xs rounded-full font-medium">Stella</span>
                   )}
                 </div>
                 <p className="text-muted text-sm mb-2">@{result.github_user.login}</p>
-                {result.github_user.bio && <p className="text-white/70 text-sm mb-3">{result.github_user.bio}</p>}
+                {result.github_user.bio && <p className="text-foreground/70 text-sm mb-3">{result.github_user.bio}</p>}
                 <div className="flex gap-4 text-xs text-muted">
-                  <span><span className="text-white font-medium">{result.github_user.followers}</span> followers</span>
-                  <span><span className="text-white font-medium">{result.github_user.public_repos}</span> repos</span>
+                  <span><span className="text-foreground font-medium">{result.github_user.followers}</span> followers</span>
+                  <span><span className="text-foreground font-medium">{result.github_user.public_repos}</span> repos</span>
                 </div>
               </div>
               <a href={result.github_user.html_url} target="_blank" rel="noopener noreferrer"
-                className="text-muted hover:text-white text-xs border border-border px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap shrink-0">
+                className="text-muted hover:text-foreground text-xs border border-border px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap shrink-0">
                 GitHub ↗
               </a>
             </div>
 
             <div>
-              <h3 className="text-white font-semibold mb-4">
+              <h3 className="text-foreground font-semibold mb-4">
                 {result.has_stella_profile ? "Showcased repos" : "Public repos"} ({result.repos.length})
               </h3>
               <div className="space-y-3">
@@ -144,7 +144,7 @@ export default function SearchPage() {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <p className="text-white font-medium text-sm mb-1">{repo.name}</p>
+                        <p className="text-foreground font-medium text-sm mb-1">{repo.name}</p>
                         {repo.description && <p className="text-muted text-xs line-clamp-2">{repo.description}</p>}
                       </div>
                       <div className="flex gap-3 text-xs text-muted shrink-0">

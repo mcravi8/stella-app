@@ -8,9 +8,16 @@ interface SwipeDeckProps {
   providerToken: string | null;
 }
 
+interface Enhancement {
+  description: string;
+  highlights: string[];
+}
+
 export default function SwipeDeck({ repos, onLoadMore, providerToken }: SwipeDeckProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [enhancements, setEnhancements] = useState<Record<string, Enhancement>>({});
+  const enhanceRequested = useRef<Set<string>>(new Set());
   const loadMoreCalled = useRef(false);
 
   const currentRepo = repos[currentIndex];
@@ -23,6 +30,35 @@ export default function SwipeDeck({ repos, onLoadMore, providerToken }: SwipeDec
       setTimeout(() => { loadMoreCalled.current = false; }, 2000);
     }
   }, [currentIndex, repos.length, onLoadMore]);
+
+  // Lazy enhancement: fetch synthesized description for the next 3 cards in the deck.
+  useEffect(() => {
+    const targets = repos.slice(currentIndex, currentIndex + 3);
+    targets.forEach(r => {
+      if (enhanceRequested.current.has(r.full_name)) return;
+      enhanceRequested.current.add(r.full_name);
+      fetch("/api/enhance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: r.full_name,
+          github_description: r.description,
+          topics: r.topics,
+          language: r.language,
+        }),
+      })
+        .then(res => (res.ok ? res.json() : null))
+        .then(data => {
+          if (data?.description) {
+            setEnhancements(prev => ({
+              ...prev,
+              [r.full_name]: { description: data.description, highlights: data.highlights || [] },
+            }));
+          }
+        })
+        .catch(() => {});
+    });
+  }, [currentIndex, repos]);
 
   const handleSwipe = useCallback(async (direction: "left" | "right") => {
     if (!currentRepo || isActionLoading) return;
@@ -74,10 +110,14 @@ export default function SwipeDeck({ repos, onLoadMore, providerToken }: SwipeDec
       <div className="relative flex-1 min-h-0">
         {visibleRepos.map((repo, i) => {
           const stackIndex = visibleRepos.length - 1 - i;
+          const enhanced = enhancements[repo.full_name];
+          const merged = enhanced
+            ? { ...repo, description: enhanced.description, highlights: enhanced.highlights }
+            : repo;
           return (
             <SwipeCard
               key={repo.id}
-              repo={repo}
+              repo={merged}
               onSwipe={handleSwipe}
               index={stackIndex}
             />

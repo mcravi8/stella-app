@@ -35,32 +35,32 @@ const FALLBACK_REPOS = [
   { id: 1030, full_name: "opentofu/opentofu", name: "opentofu", description: "The open source Terraform alternative. Community-driven infrastructure as code with a permissive license — plan, apply, and manage your cloud resources with confidence.", language: "Go", topics: ["infrastructure", "devops", "terraform", "iac"], stargazers_count: 23000, forks_count: 870, html_url: "https://github.com/opentofu/opentofu", owner: { avatar_url: "https://github.com/opentofu.png", login: "opentofu" } },
 ];
 
-// Query strategies rotated across pages
+// Query strategies rotated across pages. Indices are referenced by INTEREST_STRATEGY_MAP.
 const STRATEGIES = [
-  // Trending: last 7 days
-  (p: number) => ({ q: `stars:>50 pushed:>${daysAgo(7)}`, sort: "stars", page: p }),
-  // Trending: last 30 days
-  (p: number) => ({ q: `stars:>100 pushed:>${daysAgo(30)}`, sort: "stars", page: p }),
-  // AI / ML
-  (p: number) => ({ q: `topic:machine-learning stars:>200`, sort: "stars", page: p }),
-  // Developer tools
-  (p: number) => ({ q: `topic:developer-tools stars:>200`, sort: "stars", page: p }),
-  // TypeScript ecosystem
-  (p: number) => ({ q: `language:typescript stars:>500 pushed:>${daysAgo(180)}`, sort: "stars", page: p }),
-  // Python ecosystem
-  (p: number) => ({ q: `language:python stars:>500 pushed:>${daysAgo(180)}`, sort: "stars", page: p }),
-  // Web / UI
-  (p: number) => ({ q: `topic:web stars:>300`, sort: "updated", page: p }),
-  // CLI tools
-  (p: number) => ({ q: `topic:cli stars:>300`, sort: "stars", page: p }),
-  // Rust projects
-  (p: number) => ({ q: `language:rust stars:>200 pushed:>${daysAgo(180)}`, sort: "stars", page: p }),
-  // Go projects
-  (p: number) => ({ q: `language:go stars:>200 pushed:>${daysAgo(180)}`, sort: "stars", page: p }),
-  // AI topic
-  (p: number) => ({ q: `topic:ai stars:>500`, sort: "stars", page: p }),
-  // Mobile
-  (p: number) => ({ q: `topic:mobile stars:>300`, sort: "stars", page: p }),
+  /* 0  */ (p: number) => ({ q: `stars:>50 pushed:>${daysAgo(7)}`, sort: "stars", page: p }),       // trending 7d
+  /* 1  */ (p: number) => ({ q: `stars:>100 pushed:>${daysAgo(30)}`, sort: "stars", page: p }),     // trending 30d
+  /* 2  */ (p: number) => ({ q: `topic:machine-learning stars:>200`, sort: "stars", page: p }),     // ML
+  /* 3  */ (p: number) => ({ q: `topic:developer-tools stars:>200`, sort: "stars", page: p }),      // dev tools
+  /* 4  */ (p: number) => ({ q: `language:typescript stars:>500 pushed:>${daysAgo(180)}`, sort: "stars", page: p }),
+  /* 5  */ (p: number) => ({ q: `language:python stars:>500 pushed:>${daysAgo(180)}`, sort: "stars", page: p }),
+  /* 6  */ (p: number) => ({ q: `topic:frontend stars:>300`, sort: "updated", page: p }),
+  /* 7  */ (p: number) => ({ q: `topic:cli stars:>300`, sort: "stars", page: p }),
+  /* 8  */ (p: number) => ({ q: `language:rust stars:>200 pushed:>${daysAgo(180)}`, sort: "stars", page: p }),
+  /* 9  */ (p: number) => ({ q: `language:go stars:>200 pushed:>${daysAgo(180)}`, sort: "stars", page: p }),
+  /* 10 */ (p: number) => ({ q: `topic:ai stars:>500`, sort: "stars", page: p }),
+  /* 11 */ (p: number) => ({ q: `topic:mobile stars:>300`, sort: "stars", page: p }),
+  /* 12 */ (p: number) => ({ q: `topic:llm stars:>300`, sort: "stars", page: p }),                  // LLMs
+  /* 13 */ (p: number) => ({ q: `topic:agents stars:>200 pushed:>${daysAgo(180)}`, sort: "stars", page: p }), // AI Agents
+  /* 14 */ (p: number) => ({ q: `topic:react stars:>500`, sort: "stars", page: p }),                // React
+  /* 15 */ (p: number) => ({ q: `topic:nextjs stars:>300`, sort: "stars", page: p }),               // Next.js
+  /* 16 */ (p: number) => ({ q: `topic:vue stars:>300`, sort: "stars", page: p }),                  // Vue
+  /* 17 */ (p: number) => ({ q: `topic:svelte stars:>200`, sort: "stars", page: p }),               // Svelte
+  /* 18 */ (p: number) => ({ q: `topic:backend stars:>300`, sort: "stars", page: p }),              // Backend
+  /* 19 */ (p: number) => ({ q: `topic:robotics stars:>200`, sort: "stars", page: p }),             // Robotics
+  /* 20 */ (p: number) => ({ q: `topic:blockchain stars:>500`, sort: "stars", page: p }),           // Blockchain
+  /* 21 */ (p: number) => ({ q: `topic:education stars:>500`, sort: "stars", page: p }),            // Education
+  /* 22 */ (p: number) => ({ q: `topic:database stars:>300`, sort: "stars", page: p }),             // Databases
+  /* 23 */ (p: number) => ({ q: `topic:security stars:>300`, sort: "stars", page: p }),             // Security
 ];
 
 function daysAgo(n: number): string {
@@ -139,8 +139,16 @@ export async function GET(request: Request) {
 
   // Build personalized strategy pool based on user interests
   const INTEREST_STRATEGY_MAP: Record<string, number[]> = {
+    // Languages
     "Python": [5], "JavaScript": [4], "TypeScript": [4], "Rust": [8], "Go": [9],
-    "AI / ML": [2, 10], "Web Dev": [6], "Mobile": [11], "CLI Tools": [7], "Dev Tools": [3],
+    // Frameworks
+    "React": [14], "Next.js": [15], "Vue": [16], "Svelte": [17], "Astro": [6],
+    // Topics
+    "AI / ML": [2, 10], "AI Agents": [13], "LLMs": [12, 10],
+    "Frontend": [6], "Backend": [18], "Mobile": [11],
+    "CLI Tools": [7], "Dev Tools": [3],
+    "Robotics": [19], "Blockchain": [20], "Education": [21],
+    "Databases": [22], "Security": [23],
   };
   let activeStrategies = STRATEGIES;
   if (userInterests.length > 0) {
