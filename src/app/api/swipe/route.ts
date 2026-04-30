@@ -16,10 +16,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  await supabase.from("swipes").upsert(
+  const { error: upsertError } = await supabase.from("swipes").upsert(
     { user_id: user.id, repo_full_name, direction, repo_data },
     { onConflict: "user_id,repo_full_name" }
   );
+
+  if (upsertError) {
+    console.error("[/api/swipe] swipes upsert failed:", upsertError);
+    return NextResponse.json(
+      { error: "Failed to record swipe", details: upsertError.message },
+      { status: 500 }
+    );
+  }
 
   if (direction === "right" && provider_token) {
     const ghHeaders = {
