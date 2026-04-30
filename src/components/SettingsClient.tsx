@@ -14,23 +14,28 @@ type Repo = {
   owner: { avatar_url: string; login: string };
 };
 
+const BIO_MAX = 280;
+
 interface Props {
   username: string;
   initialInterests: string[];
   swipedRepos: Repo[];
   initialShowcased: string[];
+  initialBio: string | null;
 }
 
-export default function SettingsClient({ username, initialInterests, swipedRepos, initialShowcased }: Props) {
+type SaveState = "idle" | "saving" | "saved" | "error";
+
+export default function SettingsClient({ username, initialInterests, swipedRepos, initialShowcased, initialBio }: Props) {
+  const [bio, setBio] = useState<string>(initialBio || "");
+  const [bioState, setBioState] = useState<SaveState>("idle");
   const [interests, setInterests] = useState<Set<string>>(new Set(initialInterests));
   // Ordered list of full_names — order is the public display order on /profile/[username].
   const [showcasedOrder, setShowcasedOrder] = useState<string[]>(
     initialShowcased.filter(n => swipedRepos.some(r => r.full_name === n))
   );
-  const [savingInterests, setSavingInterests] = useState(false);
-  const [savedInterests, setSavedInterests] = useState(false);
-  const [savingShowcase, setSavingShowcase] = useState(false);
-  const [savedShowcase, setSavedShowcase] = useState(false);
+  const [interestsState, setInterestsState] = useState<SaveState>("idle");
+  const [showcaseState, setShowcaseState] = useState<SaveState>("idle");
 
   const showcasedSet = new Set(showcasedOrder);
   const repoByName = new Map(swipedRepos.map(r => [r.full_name, r]));
@@ -45,17 +50,17 @@ export default function SettingsClient({ username, initialInterests, swipedRepos
       if (next.has(tag)) next.delete(tag); else next.add(tag);
       return next;
     });
-    setSavedInterests(false);
+    setInterestsState("idle");
   };
 
   const addToShowcase = (full_name: string) => {
     setShowcasedOrder(prev => prev.includes(full_name) ? prev : [...prev, full_name]);
-    setSavedShowcase(false);
+    setShowcaseState("idle");
   };
 
   const removeFromShowcase = (full_name: string) => {
     setShowcasedOrder(prev => prev.filter(n => n !== full_name));
-    setSavedShowcase(false);
+    setShowcaseState("idle");
   };
 
   const move = (full_name: string, direction: -1 | 1) => {
@@ -67,31 +72,51 @@ export default function SettingsClient({ username, initialInterests, swipedRepos
       [next[i], next[j]] = [next[j], next[i]];
       return next;
     });
-    setSavedShowcase(false);
+    setShowcaseState("idle");
+  };
+
+  const saveBio = async () => {
+    setBioState("saving");
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bio }),
+      });
+      setBioState(res.ok ? "saved" : "error");
+    } catch {
+      setBioState("error");
+    }
   };
 
   const saveInterests = async () => {
-    setSavingInterests(true);
-    await fetch("/api/interests", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tags: Array.from(interests) }),
-    });
-    setSavingInterests(false);
-    setSavedInterests(true);
+    setInterestsState("saving");
+    try {
+      const res = await fetch("/api/interests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tags: Array.from(interests) }),
+      });
+      setInterestsState(res.ok ? "saved" : "error");
+    } catch {
+      setInterestsState("error");
+    }
   };
 
   const saveShowcase = async () => {
-    setSavingShowcase(true);
-    await fetch("/api/showcased", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        repos: showcasedRepos.map(r => ({ full_name: r.full_name, repo_data: r })),
-      }),
-    });
-    setSavingShowcase(false);
-    setSavedShowcase(true);
+    setShowcaseState("saving");
+    try {
+      const res = await fetch("/api/showcased", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          repos: showcasedRepos.map(r => ({ full_name: r.full_name, repo_data: r })),
+        }),
+      });
+      setShowcaseState(res.ok ? "saved" : "error");
+    } catch {
+      setShowcaseState("error");
+    }
   };
 
   return (
@@ -112,6 +137,40 @@ export default function SettingsClient({ username, initialInterests, swipedRepos
 
       <main className="max-w-2xl mx-auto px-4 py-10 space-y-12">
         <section>
+          <div className="flex items-center justify-between mb-4 gap-4">
+            <div>
+              <h2 className="text-foreground font-bold text-xl mb-1">About</h2>
+              <p className="text-muted text-sm">Shown on your public profile (overrides your GitHub bio).</p>
+            </div>
+            <button
+              onClick={saveBio}
+              disabled={bioState === "saving" || bio.length > BIO_MAX}
+              className="px-5 py-2 bg-accent text-white rounded-xl text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50 shrink-0"
+            >
+              {bioState === "saving" ? "Saving..." : bioState === "saved" ? "Saved ✓" : bioState === "error" ? "Retry" : "Save"}
+            </button>
+          </div>
+          <textarea
+            value={bio}
+            onChange={e => { setBio(e.target.value); setBioState("idle"); }}
+            placeholder="Brief description of your expertise…"
+            rows={3}
+            maxLength={BIO_MAX + 50}
+            className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-foreground text-sm placeholder:text-muted focus:outline-none focus:border-accent transition-colors resize-none"
+          />
+          <div className="flex items-center justify-between mt-1.5 text-xs">
+            {bioState === "error" ? (
+              <span className="text-red-500">Save failed — try again.</span>
+            ) : (
+              <span className="text-muted">Markdown not supported.</span>
+            )}
+            <span className={bio.length > BIO_MAX ? "text-red-500 tabular-nums" : "text-muted tabular-nums"}>
+              {bio.length}/{BIO_MAX}
+            </span>
+          </div>
+        </section>
+
+        <section>
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-foreground font-bold text-xl mb-1">Interests</h2>
@@ -119,10 +178,10 @@ export default function SettingsClient({ username, initialInterests, swipedRepos
             </div>
             <button
               onClick={saveInterests}
-              disabled={savingInterests}
+              disabled={interestsState === "saving"}
               className="px-5 py-2 bg-accent text-white rounded-xl text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50"
             >
-              {savingInterests ? "Saving..." : savedInterests ? "Saved ✓" : "Save"}
+              {interestsState === "saving" ? "Saving..." : interestsState === "saved" ? "Saved ✓" : interestsState === "error" ? "Retry" : "Save"}
             </button>
           </div>
           {Object.entries(INTEREST_TAGS).map(([section, tags]) => (
@@ -155,11 +214,14 @@ export default function SettingsClient({ username, initialInterests, swipedRepos
             </div>
             <button
               onClick={saveShowcase}
-              disabled={savingShowcase || swipedRepos.length === 0}
+              disabled={showcaseState === "saving" || swipedRepos.length === 0}
               className="px-5 py-2 bg-accent text-white rounded-xl text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50"
             >
-              {savingShowcase ? "Saving..." : savedShowcase ? "Saved ✓" : "Save"}
+              {showcaseState === "saving" ? "Saving..." : showcaseState === "saved" ? "Saved ✓" : showcaseState === "error" ? "Retry" : "Save"}
             </button>
+            {showcaseState === "error" && (
+              <span className="text-red-500 text-xs">Save failed — see console.</span>
+            )}
           </div>
           {swipedRepos.length === 0 ? (
             <p className="text-muted text-sm">Swipe right on some repos first — they&apos;ll appear here to choose from.</p>

@@ -9,10 +9,11 @@ export default async function SettingsPage() {
 
   const username = user.user_metadata?.user_name || "";
 
-  const [{ data: interests }, { data: swipes }, { data: showcased }] = await Promise.all([
+  const [{ data: interests }, { data: swipes }, { data: showcased }, { data: profile }] = await Promise.all([
     supabase.from("user_interests").select("tag").eq("user_id", user.id),
     supabase.from("swipes").select("repo_full_name, repo_data").eq("user_id", user.id).eq("direction", "right").order("created_at", { ascending: false }).limit(50),
     supabase.from("showcased_repos").select("repo_full_name, position").eq("user_id", user.id).order("position", { ascending: true }),
+    supabase.from("profiles").select("bio").eq("user_id", user.id).single(),
   ]);
 
   return (
@@ -21,6 +22,7 @@ export default async function SettingsPage() {
       initialInterests={(interests || []).map(i => i.tag)}
       swipedRepos={(swipes || []).filter(s => s.repo_data).map(s => s.repo_data)}
       initialShowcased={(showcased || []).map(r => r.repo_full_name)}
+      initialBio={profile?.bio ?? null}
     />
   );
 }
