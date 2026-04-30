@@ -57,16 +57,20 @@ export default function SwipeDeck({ repos, onLoadMore, providerToken }: SwipeDec
 
   if (!currentRepo) {
     return (
-      <div className="flex flex-col items-center justify-center flex-1 text-center">
-        <div className="text-5xl mb-4">🎉</div>
-        <p className="text-foreground font-semibold text-xl mb-2">You&apos;re all caught up!</p>
+      <div className="flex flex-col items-center justify-center flex-1 text-center px-4">
+        <div className="w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center mb-5">
+          <svg className="w-8 h-8 text-accent" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+        </div>
+        <p className="text-foreground font-semibold text-xl mb-1.5">You&apos;re all caught up</p>
         <p className="text-muted text-sm">Check back later for more repos.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full gap-4">
+    <div className="flex flex-col h-full">
       <div className="relative flex-1 min-h-0">
         {visibleRepos.map((repo, i) => {
           const stackIndex = visibleRepos.length - 1 - i;
@@ -79,27 +83,6 @@ export default function SwipeDeck({ repos, onLoadMore, providerToken }: SwipeDec
             />
           );
         })}
-      </div>
-
-      <div className="flex items-center justify-center gap-8 pb-2 shrink-0">
-        <button
-          onClick={() => handleSwipe("left")}
-          disabled={isActionLoading}
-          className="w-14 h-14 bg-surface rounded-full flex items-center justify-center text-red-500 hover:bg-red-500/10 hover:scale-110 transition-all duration-200 text-2xl border border-border disabled:opacity-50"
-          style={{ boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
-          title="Skip"
-        >
-          ✗
-        </button>
-        <button
-          onClick={() => handleSwipe("right")}
-          disabled={isActionLoading}
-          className="w-14 h-14 bg-surface rounded-full flex items-center justify-center text-green-500 hover:bg-green-500/10 hover:scale-110 transition-all duration-200 text-2xl border border-border disabled:opacity-50"
-          style={{ boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
-          title="Star & Fork"
-        >
-          ✓
-        </button>
       </div>
     </div>
   );
