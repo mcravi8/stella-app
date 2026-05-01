@@ -58,7 +58,12 @@ export default function SwipePageClient({ providerToken, userName, needsStarsImp
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("/api/import-stars", { method: "POST" });
+        const res = await fetch("/api/import-stars", {
+          method: "POST",
+          headers: providerToken
+            ? { "Content-Type": "application/json", "x-provider-token": providerToken }
+            : undefined,
+        });
         if (!res.ok || cancelled) return;
         const data = await res.json();
         if (data.imported && data.imported > 0) {

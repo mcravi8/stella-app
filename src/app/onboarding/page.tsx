@@ -63,7 +63,15 @@ export default function OnboardingPage() {
 
         <div className="flex gap-3 mt-6">
           <button
-            onClick={() => router.push("/")}
+            onClick={async () => {
+              // Mark interests_set=true even when skipping so we don't re-prompt on next login
+              await fetch("/api/interests", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ tags: [] }),
+              });
+              router.push("/");
+            }}
             className="flex-1 px-6 py-3 rounded-2xl border border-border text-muted hover:text-foreground text-sm font-medium transition-colors"
           >
             Skip for now

@@ -19,7 +19,7 @@ interface GHRepo {
   owner: { avatar_url: string; login: string };
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -34,8 +34,15 @@ export async function POST() {
     return NextResponse.json({ skipped: true, reason: "already_imported" });
   }
 
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.provider_token;
+  // provider_token is only available immediately after OAuth — read from header first
+  // (SwipePageClient passes it from page.tsx which captures it at render time),
+  // then fall back to the server-side session as a safety net.
+  const headerToken = request.headers.get("x-provider-token");
+  let token = headerToken;
+  if (!token) {
+    const { data: { session } } = await supabase.auth.getSession();
+    token = session?.provider_token ?? null;
+  }
   if (!token) {
     return NextResponse.json(
       { error: "Missing GitHub provider token; sign out and back in to grant access" },
