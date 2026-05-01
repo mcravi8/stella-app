@@ -108,7 +108,11 @@ function mapRepo(r: GHRepo) {
   };
 }
 
-type MappedRepo = ReturnType<typeof mapRepo> & { contributed_by?: string | null };
+type MappedRepo = ReturnType<typeof mapRepo> & {
+  contributed_by?: string | null;
+  source_label?: string | null; // e.g. "via Show HN"
+  source_url?: string | null;   // e.g. https://news.ycombinator.com/item?id=...
+};
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -117,6 +121,7 @@ export async function GET(request: Request) {
   // Try to get logged-in user + community repos (optional — unauthenticated requests still work)
   let swipedSet = new Set<string>();
   let communityRepos: MappedRepo[] = [];
+  let externalRepos: MappedRepo[] = [];
   let userInterests: string[] = [];
   try {
     const supabase = await createClient();
@@ -140,8 +145,26 @@ export async function GET(request: Request) {
         .filter(r => r.repo_data && !swipedSet.has(r.repo_full_name))
         .map(r => ({ ...mapRepo(r.repo_data as GHRepo), contributed_by: r.submitter_username }));
     }
+
+    // Fetch externally-sourced repos (Show HN scraper, etc.). Highest source_score first
+    // so the most-upvoted Show HN posts surface first. Falls back gracefully if the
+    // table doesn't exist yet (migration not applied).
+    const { data: external } = await supabase
+      .from("external_repos")
+      .select("repo_full_name, repo_data, source, source_url")
+      .order("source_score", { ascending: false, nullsFirst: false })
+      .limit(20);
+    if (external?.length) {
+      externalRepos = external
+        .filter(r => r.repo_data && !swipedSet.has(r.repo_full_name))
+        .map(r => ({
+          ...mapRepo(r.repo_data as GHRepo),
+          source_label: r.source === "hn_show" ? "via Show HN" : r.source ? `via ${r.source}` : null,
+          source_url: r.source_url ?? null,
+        }));
+    }
   } catch {
-    // Non-fatal — proceed without swiped filtering or community repos
+    // Non-fatal — proceed without swiped filtering, community repos, or external repos
   }
 
   // Build personalized strategy pool based on user interests
@@ -213,6 +236,15 @@ export async function GET(request: Request) {
       .forEach((cr, i) => {
         const pos = Math.min((i + 1) * 5, merged.length);
         merged.splice(pos, 0, cr);
+      });
+
+    // Sprinkle externally-sourced repos (Show HN, etc.) every ~8 cards, offset by 3
+    // from the community-submission cadence so cards from different sources don't bunch up.
+    externalRepos
+      .filter(er => !merged.some(r => r.full_name === er.full_name))
+      .forEach((er, i) => {
+        const pos = Math.min(3 + (i + 1) * 8, merged.length);
+        merged.splice(pos, 0, er);
       });
 
     return NextResponse.json({ repos: merged });
