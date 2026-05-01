@@ -20,12 +20,13 @@ interface SwipeCardProps {
   repo: Repo;
   onSwipe: (direction: "left" | "right") => void;
   index: number;
+  enhancing?: boolean;
 }
 
 const CARD_SHADOW =
   "0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.08), 0 24px 48px rgba(0,0,0,0.10)";
 
-export default function SwipeCard({ repo, onSwipe, index }: SwipeCardProps) {
+export default function SwipeCard({ repo, onSwipe, index, enhancing }: SwipeCardProps) {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-10, 10]);
   const starOpacity = useTransform(x, [30, 110], [0, 1]);
@@ -119,7 +120,8 @@ export default function SwipeCard({ repo, onSwipe, index }: SwipeCardProps) {
         </div>
 
         <p
-          className="text-foreground/75 text-sm leading-relaxed mb-3"
+          key={`desc-${repo.description}`}
+          className="text-foreground/75 text-sm leading-relaxed mb-3 motion-safe:animate-[fadeIn_220ms_ease-out]"
           style={{
             display: "-webkit-box",
             WebkitLineClamp: repo.highlights?.length ? 4 : 7,
@@ -131,7 +133,7 @@ export default function SwipeCard({ repo, onSwipe, index }: SwipeCardProps) {
         </p>
 
         {repo.highlights && repo.highlights.length > 0 && (
-          <ul className="space-y-1.5 mb-4 flex-1 overflow-hidden">
+          <ul className="space-y-1.5 mb-4 flex-1 overflow-hidden motion-safe:animate-[fadeIn_280ms_ease-out]">
             {repo.highlights.slice(0, 3).map((h, i) => (
               <li key={i} className="flex items-start gap-2 text-foreground/80 text-sm leading-snug">
                 <span className="text-accent mt-1 shrink-0">
@@ -145,7 +147,18 @@ export default function SwipeCard({ repo, onSwipe, index }: SwipeCardProps) {
           </ul>
         )}
 
-        {!repo.highlights?.length && <div className="flex-1" />}
+        {enhancing && !repo.highlights?.length && (
+          <div className="flex-1 flex items-start">
+            <div className="inline-flex items-center gap-1.5 text-accent text-xs font-medium bg-accent/10 border border-accent/20 rounded-full px-2.5 py-1">
+              <svg className="w-3 h-3 motion-safe:animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" d="M21 12a9 9 0 11-6.219-8.56" />
+              </svg>
+              Enhancing description…
+            </div>
+          </div>
+        )}
+
+        {!enhancing && !repo.highlights?.length && <div className="flex-1" />}
 
         {repo.topics.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-4">

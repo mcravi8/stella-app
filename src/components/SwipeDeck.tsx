@@ -13,10 +13,15 @@ interface Enhancement {
   highlights: string[];
 }
 
+type EnhanceState = "loading" | "done" | "failed";
+
+const PREFETCH_AHEAD = 5;
+
 export default function SwipeDeck({ repos, onLoadMore, providerToken }: SwipeDeckProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [enhancements, setEnhancements] = useState<Record<string, Enhancement>>({});
+  const [enhanceStates, setEnhanceStates] = useState<Record<string, EnhanceState>>({});
   const enhanceRequested = useRef<Set<string>>(new Set());
   const loadMoreCalled = useRef(false);
 
@@ -31,12 +36,15 @@ export default function SwipeDeck({ repos, onLoadMore, providerToken }: SwipeDec
     }
   }, [currentIndex, repos.length, onLoadMore]);
 
-  // Lazy enhancement: fetch synthesized description for the next 3 cards in the deck.
+  // Lazy enhancement: prefetch enhanced descriptions for the next PREFETCH_AHEAD cards.
+  // By the time most cards become visible they're already enhanced; the small "Enhancing…"
+  // pill on the visible card only shows for the rare cache-miss-on-current-card case.
   useEffect(() => {
-    const targets = repos.slice(currentIndex, currentIndex + 3);
+    const targets = repos.slice(currentIndex, currentIndex + PREFETCH_AHEAD);
     targets.forEach(r => {
       if (enhanceRequested.current.has(r.full_name)) return;
       enhanceRequested.current.add(r.full_name);
+      setEnhanceStates(prev => ({ ...prev, [r.full_name]: "loading" }));
       fetch("/api/enhance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -54,9 +62,14 @@ export default function SwipeDeck({ repos, onLoadMore, providerToken }: SwipeDec
               ...prev,
               [r.full_name]: { description: data.description, highlights: data.highlights || [] },
             }));
+            setEnhanceStates(prev => ({ ...prev, [r.full_name]: "done" }));
+          } else {
+            setEnhanceStates(prev => ({ ...prev, [r.full_name]: "failed" }));
           }
         })
-        .catch(() => {});
+        .catch(() => {
+          setEnhanceStates(prev => ({ ...prev, [r.full_name]: "failed" }));
+        });
     });
   }, [currentIndex, repos]);
 
@@ -114,12 +127,17 @@ export default function SwipeDeck({ repos, onLoadMore, providerToken }: SwipeDec
           const merged = enhanced
             ? { ...repo, description: enhanced.description, highlights: enhanced.highlights }
             : repo;
+          // Only surface the "Enhancing…" indicator on the top card — stack cards behind
+          // would just be visual noise. State is "loading" until the enhance call resolves.
+          const enhancing =
+            stackIndex === 0 && !enhanced && enhanceStates[repo.full_name] === "loading";
           return (
             <SwipeCard
               key={repo.id}
               repo={merged}
               onSwipe={handleSwipe}
               index={stackIndex}
+              enhancing={enhancing}
             />
           );
         })}
