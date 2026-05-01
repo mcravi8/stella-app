@@ -120,7 +120,10 @@ export default function SwipePageClient({ providerToken, userName, needsStarsImp
   };
 
   return (
-    <div className="h-dvh flex flex-col bg-background relative overflow-hidden">
+    <div
+      className="h-dvh flex flex-col bg-background relative overflow-hidden"
+      style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
+    >
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10"

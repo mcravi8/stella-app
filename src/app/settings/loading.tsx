@@ -1,8 +1,12 @@
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-background animate-pulse">
-      <nav className="fixed top-0 left-0 right-0 z-40 border-b border-border bg-background h-14" />
-      <main className="max-w-2xl mx-auto px-4 pt-24 pb-28 space-y-12">
+    <div
+      className="h-dvh flex flex-col bg-background animate-pulse overflow-hidden"
+      style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
+    >
+      <nav className="shrink-0 border-b border-border h-14" />
+      <div className="flex-1 overflow-y-auto">
+      <main className="max-w-2xl mx-auto px-4 pt-10 pb-28 space-y-12">
         <section>
           <div className="h-6 w-24 rounded bg-border/60 mb-2" />
           <div className="h-3 w-64 rounded bg-border/60 mb-4" />
@@ -25,6 +29,7 @@ export default function Loading() {
           </div>
         </section>
       </main>
+      </div>
     </div>
   );
 }
