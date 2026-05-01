@@ -5,7 +5,7 @@
       "schedule": "0 6 * * *"
     },
     {
-      "path": "/api/scrape-reddit",
+      "path": "/api/scrape-ossinsight",
       "schedule": "30 6 * * *"
     }
   ]
