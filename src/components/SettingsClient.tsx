@@ -19,30 +19,36 @@ const BIO_MAX = 280;
 interface Props {
   username: string;
   initialInterests: string[];
-  swipedRepos: Repo[];
-  initialShowcased: string[];
+  ownRepos: Repo[];
+  showcasedRepos: Repo[];
   initialBio: string | null;
 }
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
-export default function SettingsClient({ username, initialInterests, swipedRepos, initialShowcased, initialBio }: Props) {
+export default function SettingsClient({ username, initialInterests, ownRepos, showcasedRepos: initialShowcasedRepos, initialBio }: Props) {
   const [bio, setBio] = useState<string>(initialBio || "");
   const [bioState, setBioState] = useState<SaveState>("idle");
   const [interests, setInterests] = useState<Set<string>>(new Set(initialInterests));
   // Ordered list of full_names — order is the public display order on /profile/[username].
   const [showcasedOrder, setShowcasedOrder] = useState<string[]>(
-    initialShowcased.filter(n => swipedRepos.some(r => r.full_name === n))
+    initialShowcasedRepos.map(r => r.full_name)
   );
   const [interestsState, setInterestsState] = useState<SaveState>("idle");
   const [showcaseState, setShowcaseState] = useState<SaveState>("idle");
 
+  // Build a lookup that includes owned repos plus any previously-showcased repo data
+  // (so legacy showcased entries that aren't in ownRepos still render and are removable).
   const showcasedSet = new Set(showcasedOrder);
-  const repoByName = new Map(swipedRepos.map(r => [r.full_name, r]));
+  const repoByName = new Map<string, Repo>();
+  for (const r of initialShowcasedRepos) repoByName.set(r.full_name, r);
+  for (const r of ownRepos) repoByName.set(r.full_name, r);
+
   const showcasedRepos = showcasedOrder
     .map(n => repoByName.get(n))
     .filter((r): r is Repo => Boolean(r));
-  const availableRepos = swipedRepos.filter(r => !showcasedSet.has(r.full_name));
+  // Picker only shows the user's own GitHub repos (filtered server-side).
+  const availableRepos = ownRepos.filter(r => !showcasedSet.has(r.full_name));
 
   const toggleInterest = (tag: string) => {
     setInterests(prev => {
@@ -210,11 +216,11 @@ export default function SettingsClient({ username, initialInterests, swipedRepos
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-foreground font-bold text-xl mb-1">Showcased repos</h2>
-              <p className="text-muted text-sm">Pick which repos appear on your public profile</p>
+              <p className="text-muted text-sm">Pick which of your own GitHub repos appear on your public profile</p>
             </div>
             <button
               onClick={saveShowcase}
-              disabled={showcaseState === "saving" || swipedRepos.length === 0}
+              disabled={showcaseState === "saving"}
               className="px-5 py-2 bg-accent text-white rounded-xl text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50"
             >
               {showcaseState === "saving" ? "Saving..." : showcaseState === "saved" ? "Saved ✓" : showcaseState === "error" ? "Retry" : "Save"}
@@ -223,8 +229,8 @@ export default function SettingsClient({ username, initialInterests, swipedRepos
               <span className="text-red-500 text-xs">Save failed — see console.</span>
             )}
           </div>
-          {swipedRepos.length === 0 ? (
-            <p className="text-muted text-sm">Swipe right on some repos first — they&apos;ll appear here to choose from.</p>
+          {ownRepos.length === 0 && showcasedRepos.length === 0 ? (
+            <p className="text-muted text-sm">No public repos found on your GitHub account yet.</p>
           ) : (
             <>
               {showcasedRepos.length > 0 && (
@@ -288,7 +294,7 @@ export default function SettingsClient({ username, initialInterests, swipedRepos
               {availableRepos.length > 0 && (
                 <div>
                   <h3 className="text-muted text-xs font-medium uppercase tracking-wider mb-3">
-                    Available · click to add to your profile
+                    Your GitHub repos · click to add
                   </h3>
                   <div className="space-y-2">
                     {availableRepos.map(repo => (
