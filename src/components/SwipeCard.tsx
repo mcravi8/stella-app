@@ -13,6 +13,8 @@ export interface Repo {
   html_url: string;
   owner: { avatar_url: string; login: string };
   contributed_by?: string | null;
+  source_label?: string | null;
+  source_url?: string | null;
   highlights?: string[];
 }
 
@@ -208,6 +210,26 @@ export default function SwipeCard({ repo, onSwipe, index, enhancing }: SwipeCard
               Contributed by{" "}
               <span className="text-accent font-medium">@{repo.contributed_by}</span>
             </span>
+          </div>
+        )}
+
+        {!repo.contributed_by && repo.source_label && (
+          <div className="mt-3 pt-3 border-t border-border flex items-center gap-1.5">
+            <span className="text-accent/70 text-xs">✦</span>
+            {repo.source_url ? (
+              <a
+                href={repo.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onPointerDown={e => e.stopPropagation()}
+                onClick={e => e.stopPropagation()}
+                className="text-muted hover:text-accent text-xs transition-colors"
+              >
+                {repo.source_label}
+              </a>
+            ) : (
+              <span className="text-muted text-xs">{repo.source_label}</span>
+            )}
           </div>
         )}
       </div>

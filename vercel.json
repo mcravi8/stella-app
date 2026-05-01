@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/scrape-hn-show",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}
