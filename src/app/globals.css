@@ -25,11 +25,13 @@
 }
 
 html, body {
-  /* Lock horizontal scrolling — the viewport meta handles iOS Safari pinch-zoom,
-     this guards against any element ever rendering wider than the viewport.
-     Use overscroll-behavior to also stop the rubber-band scroll-chaining. */
-  overflow-x: hidden;
-  overscroll-behavior-x: none;
+  /* Body never scrolls — every page owns its own internal scroll container.
+     Without this, iOS rubber-bands the entire viewport (including the header)
+     when content is taller than h-dvh. overscroll-behavior contains any
+     scroll-chaining to the inner scroll container. */
+  overflow: hidden;
+  height: 100%;
+  overscroll-behavior: none;
   max-width: 100vw;
 }
 

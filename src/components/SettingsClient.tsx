@@ -126,8 +126,11 @@ export default function SettingsClient({ username, initialInterests, ownRepos, s
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <nav className="fixed top-0 left-0 right-0 border-b border-border bg-background/95 backdrop-blur-md z-40">
+    <div
+      className="h-dvh flex flex-col bg-background overflow-hidden"
+      style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
+    >
+      <nav className="shrink-0 border-b border-border bg-background/90 backdrop-blur-sm z-40">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-accent rounded-xl flex items-center justify-center">
@@ -141,7 +144,8 @@ export default function SettingsClient({ username, initialInterests, ownRepos, s
         </div>
       </nav>
 
-      <main className="max-w-2xl mx-auto px-4 pt-24 pb-28 space-y-12">
+      <div className="flex-1 overflow-y-auto">
+      <main className="max-w-2xl mx-auto px-4 pt-10 pb-28 space-y-12">
         <section>
           <div className="flex items-center justify-between mb-4 gap-4">
             <div>
@@ -324,6 +328,7 @@ export default function SettingsClient({ username, initialInterests, ownRepos, s
           )}
         </section>
       </main>
+      </div>
     </div>
   );
 }

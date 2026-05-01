@@ -1,8 +1,12 @@
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-background animate-pulse">
-      <nav className="fixed top-0 left-0 right-0 z-40 border-b border-border bg-background h-14" />
-      <main className="max-w-4xl mx-auto px-4 pt-24 pb-28">
+    <div
+      className="h-dvh flex flex-col bg-background animate-pulse overflow-hidden"
+      style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
+    >
+      <nav className="shrink-0 border-b border-border h-14" />
+      <div className="flex-1 overflow-y-auto">
+      <main className="max-w-4xl mx-auto px-4 pt-8 pb-28">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="bg-surface rounded-2xl p-5 border border-border/50 h-40">
@@ -17,6 +21,7 @@ export default function Loading() {
           ))}
         </div>
       </main>
+      </div>
     </div>
   );
 }

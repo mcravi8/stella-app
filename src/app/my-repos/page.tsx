@@ -37,8 +37,11 @@ export default async function MyReposPage() {
   const contributionCount = contributionsResult.count || 0;
 
   return (
-    <div className="min-h-screen bg-background">
-      <nav className="fixed top-0 left-0 right-0 border-b border-border bg-background/95 backdrop-blur-md z-50">
+    <div
+      className="h-dvh flex flex-col bg-background overflow-hidden"
+      style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
+    >
+      <nav className="shrink-0 border-b border-border bg-background/90 backdrop-blur-sm z-50">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center gap-4">
           <Link href="/" className="text-muted hover:text-foreground transition-colors text-sm">← Back</Link>
           <div className="flex items-center gap-2">
@@ -60,7 +63,8 @@ export default async function MyReposPage() {
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-4 pt-24 pb-28">
+      <div className="flex-1 overflow-y-auto">
+      <main className="max-w-4xl mx-auto px-4 pt-8 pb-28">
         {!swipes?.length ? (
           <div className="text-center py-24">
             <div className="text-5xl mb-4">🚀</div>
@@ -110,6 +114,7 @@ export default async function MyReposPage() {
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 }
