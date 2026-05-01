@@ -89,18 +89,41 @@ function extractRepoFullName(rawUrl: string | null | undefined): string | null {
   return `${owner}/${cleanRepo}`;
 }
 
-async function fetchSubredditTop(sub: string): Promise<RedditChild[]> {
+interface SubResult {
+  sub: string;
+  status: number;
+  count: number;
+  github_links: number;
+  error?: string;
+}
+
+async function fetchSubredditTop(sub: string): Promise<{ children: RedditChild[]; result: SubResult }> {
   const url = `https://www.reddit.com/r/${sub}/top.json?t=${REDDIT_TIME}&limit=${REDDIT_LIMIT}`;
-  const res = await fetch(url, {
-    headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    console.warn(`[reddit-scrape] r/${sub} returned ${res.status}`);
-    return [];
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.warn(`[reddit-scrape] r/${sub} returned ${res.status}: ${body.slice(0, 200)}`);
+      return {
+        children: [],
+        result: { sub, status: res.status, count: 0, github_links: 0, error: body.slice(0, 200) },
+      };
+    }
+    const data = (await res.json()) as RedditListing;
+    const children = data?.data?.children ?? [];
+    const githubLinks = children.filter(c => extractRepoFullName(c.data.url) !== null).length;
+    return {
+      children,
+      result: { sub, status: res.status, count: children.length, github_links: githubLinks },
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn(`[reddit-scrape] r/${sub} fetch threw:`, message);
+    return { children: [], result: { sub, status: 0, count: 0, github_links: 0, error: message } };
   }
-  const data = (await res.json()) as RedditListing;
-  return data?.data?.children ?? [];
 }
 
 async function fetchRepoMetadata(fullName: string, ghToken?: string): Promise<GHRepo | null> {
@@ -144,12 +167,23 @@ async function runScrape(request: Request): Promise<NextResponse> {
   // the highest-scoring post per repo (some repos get linked from multiple subs).
   type Best = { sub: string; child: RedditChild };
   const candidates = new Map<string, Best>();
+  const subResults: SubResult[] = [];
 
   const responses = await Promise.allSettled(SUBREDDITS.map(s => fetchSubredditTop(s)));
   responses.forEach((res, idx) => {
-    if (res.status !== "fulfilled") return;
+    if (res.status !== "fulfilled") {
+      subResults.push({
+        sub: SUBREDDITS[idx],
+        status: 0,
+        count: 0,
+        github_links: 0,
+        error: String(res.reason),
+      });
+      return;
+    }
     const sub = SUBREDDITS[idx];
-    for (const child of res.value) {
+    subResults.push(res.value.result);
+    for (const child of res.value.children) {
       const d = child.data;
       if (d.is_self || d.over_18 || d.stickied) continue;
       if ((d.score ?? 0) < REDDIT_MIN_SCORE) continue;
@@ -163,7 +197,12 @@ async function runScrape(request: Request): Promise<NextResponse> {
   });
 
   if (candidates.size === 0) {
-    return NextResponse.json({ scraped: 0, kept: 0, message: "No GitHub repos in last week's top posts" });
+    return NextResponse.json({
+      scraped: 0,
+      kept: 0,
+      message: "No GitHub repos in last week's top posts",
+      sub_results: subResults,
+    });
   }
 
   const supabase = createAdminClient();
@@ -210,7 +249,12 @@ async function runScrape(request: Request): Promise<NextResponse> {
   }
 
   if (rows.length === 0) {
-    return NextResponse.json({ scraped: candidates.size, kept: 0, skipped_fresh: stillFresh.size });
+    return NextResponse.json({
+      scraped: candidates.size,
+      kept: 0,
+      skipped_fresh: stillFresh.size,
+      sub_results: subResults,
+    });
   }
 
   const { error } = await supabase
@@ -226,7 +270,7 @@ async function runScrape(request: Request): Promise<NextResponse> {
     scraped: candidates.size,
     kept: rows.length,
     skipped_fresh: stillFresh.size,
-    subs: SUBREDDITS,
+    sub_results: subResults,
   });
 }
 
