@@ -29,14 +29,26 @@ export default async function ProfilePage({ params }: Props) {
       .select("repo_data, position")
       .eq("user_id", profile.user_id)
       .order("position", { ascending: true });
-    repos = (showcased || []).map(r => r.repo_data).filter(Boolean);
+    // Only show repos owned by this user — guards against legacy showcased
+    // entries that referenced repos starred from another author.
+    repos = (showcased || [])
+      .map(r => r.repo_data)
+      .filter(Boolean)
+      .filter((r: Record<string, unknown>) => {
+        const owner = (r.owner as { login?: string } | undefined)?.login;
+        return typeof owner === "string" && owner.toLowerCase() === username.toLowerCase();
+      });
   }
   if (!repos.length) {
+    // Default fallback: their own (non-fork) public repos, top-starred first.
     const reposRes = await fetch(
-      `https://api.github.com/users/${username}/repos?sort=stars&per_page=20&type=public`,
+      `https://api.github.com/users/${username}/repos?sort=stars&per_page=30&type=owner`,
       { headers: { "User-Agent": "Stella-App/1.0" }, next: { revalidate: 300 } }
     );
-    if (reposRes.ok) repos = await reposRes.json();
+    if (reposRes.ok) {
+      const all = (await reposRes.json()) as Record<string, unknown>[];
+      repos = all.filter(r => !(r as { fork?: boolean }).fork).slice(0, 20);
+    }
   }
 
   const { data: { user } } = await supabase.auth.getUser();
