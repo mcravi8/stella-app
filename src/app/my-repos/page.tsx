@@ -38,7 +38,7 @@ export default async function MyReposPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="border-b border-border sticky top-0 bg-background/90 backdrop-blur-sm z-50">
+      <nav className="fixed top-0 left-0 right-0 border-b border-border bg-background/95 backdrop-blur-md z-50">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center gap-4">
           <Link href="/" className="text-muted hover:text-foreground transition-colors text-sm">← Back</Link>
           <div className="flex items-center gap-2">
@@ -60,7 +60,7 @@ export default async function MyReposPage() {
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-4 pt-8 pb-28">
+      <main className="max-w-4xl mx-auto px-4 pt-24 pb-28">
         {!swipes?.length ? (
           <div className="text-center py-24">
             <div className="text-5xl mb-4">🚀</div>
