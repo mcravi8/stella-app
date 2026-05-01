@@ -161,11 +161,15 @@ export default function SwipeCard({ repo, onSwipe, index, enhancing }: SwipeCard
           )}
         </div>
 
-        {/* Tap to toggle between Stella's synthesized description and the GitHub README. */}
+        {/* Tap to toggle between Stella's synthesized description and the GitHub README.
+            Uses Framer Motion's onTap rather than onClick — onClick was being swallowed
+            on mobile because the parent motion.div has drag enabled. onTap is gesture-aware
+            and only fires when there's no drag movement. */}
         {!showReadme ? (
-          <div
+          <motion.div
             className="flex-1 min-h-0 flex flex-col cursor-pointer"
-            onClick={toggleReadme}
+            onTap={toggleReadme}
+            whileTap={{ opacity: 0.7 }}
             role="button"
             aria-label="Show README"
           >
@@ -208,7 +212,12 @@ export default function SwipeCard({ repo, onSwipe, index, enhancing }: SwipeCard
               </div>
             )}
 
-            <p className="text-muted text-[11px] mb-2 italic">Tap for the full README</p>
+            <p className="inline-flex items-center gap-1 text-accent text-[11px] mb-2 font-medium">
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-2-2v-5a6 6 0 00-12 0v5l-2 2h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              Tap for the full README
+            </p>
 
             {repo.topics.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-3">
@@ -221,14 +230,25 @@ export default function SwipeCard({ repo, onSwipe, index, enhancing }: SwipeCard
             )}
 
             <div className="flex-1" />
-          </div>
+          </motion.div>
         ) : (
-          <div
-            className="flex-1 min-h-0 flex flex-col cursor-pointer motion-safe:animate-[fadeIn_220ms_ease-out]"
-            onClick={toggleReadme}
-            role="button"
-            aria-label="Back to summary"
+          <motion.div
+            className="flex-1 min-h-0 flex flex-col motion-safe:animate-[fadeIn_220ms_ease-out]"
           >
+            <div className="flex items-center justify-between mb-2 shrink-0">
+              <span className="text-muted text-xs uppercase tracking-wider font-medium">README</span>
+              <button
+                onClick={toggleReadme}
+                onPointerDown={e => e.stopPropagation()}
+                className="inline-flex items-center gap-1 text-muted hover:text-foreground text-xs px-2 py-1 -mr-1 rounded-lg hover:bg-background/60 transition-colors"
+                aria-label="Back to summary"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+                Summary
+              </button>
+            </div>
             <div
               className="flex-1 min-h-0 overflow-y-auto pr-1 text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap"
               onPointerDown={e => e.stopPropagation()}
@@ -256,11 +276,10 @@ export default function SwipeCard({ repo, onSwipe, index, enhancing }: SwipeCard
                 <span className="text-muted">This repo doesn&apos;t have a README.</span>
               )}
               {readmeState.kind === "error" && (
-                <span className="text-red-500">Couldn&apos;t load the README. Tap again to retry.</span>
+                <span className="text-red-500">Couldn&apos;t load the README. Tap retry above.</span>
               )}
             </div>
-            <p className="text-muted text-[11px] mt-2 italic shrink-0">Tap to go back to the summary</p>
-          </div>
+          </motion.div>
         )}
 
         <div className="flex items-center gap-4 text-muted text-sm pt-3 border-t border-border">
