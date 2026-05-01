@@ -6,6 +6,17 @@ import BottomNav from "@/components/BottomNav";
 export const metadata: Metadata = {
   title: "Stella — Swipe, Star, Build",
   description: "Swipe, Star, Build — discover your next project.",
+  // iOS standalone PWA support — when the user adds the app to their home screen
+  // and launches it from the icon, iOS hides Safari chrome (URL bar + toolbar)
+  // and treats it like a native app. Requires apple-mobile-web-app-capable.
+  appleWebApp: {
+    capable: true,
+    title: "Stella",
+    statusBarStyle: "default",
+  },
+  // Web App Manifest enables the same fullscreen behaviour on Android Chrome
+  // (and gives both platforms a proper home-screen icon + theme colour).
+  manifest: "/manifest.webmanifest",
 };
 
 export const viewport: Viewport = {
@@ -13,6 +24,12 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
+  // Match the app's accent / surface colours so the iOS / Android status bar
+  // and PWA splash blend with the UI instead of flashing white at launch.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f8fa" },
+    { media: "(prefers-color-scheme: dark)", color: "#0d1117" },
+  ],
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
