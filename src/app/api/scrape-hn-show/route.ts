@@ -106,7 +106,7 @@ async function fetchRepoMetadata(fullName: string, ghToken?: string): Promise<GH
   return (await res.json()) as GHRepo;
 }
 
-export async function POST(request: Request) {
+async function runScrape(request: Request): Promise<NextResponse> {
   // Cron auth: Vercel sends `Authorization: Bearer ${CRON_SECRET}`. Only enforce when set.
   const cronSecret = process.env.CRON_SECRET;
   if (cronSecret) {
@@ -114,6 +114,21 @@ export async function POST(request: Request) {
     if (auth !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+  }
+
+  // Surface missing env vars explicitly — they would otherwise crash the route below
+  // with an empty 500 from inside createAdminClient().
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return NextResponse.json(
+      { error: "SUPABASE_SERVICE_ROLE_KEY env var is not set on this deployment" },
+      { status: 500 }
+    );
+  }
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return NextResponse.json(
+      { error: "NEXT_PUBLIC_SUPABASE_URL env var is not set on this deployment" },
+      { status: 500 }
+    );
   }
 
   let hits: HNHit[];
@@ -204,7 +219,26 @@ export async function POST(request: Request) {
   });
 }
 
+// Top-level error handler so any unexpected throw surfaces as JSON instead of a silent
+// empty-body 500. Keeps post-mortem debugging fast (no need to dig into Vercel logs).
+async function safeRun(request: Request): Promise<NextResponse> {
+  try {
+    return await runScrape(request);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[hn-scrape] unhandled error:", err);
+    return NextResponse.json(
+      { error: "Scraper crashed", details: message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: Request) {
+  return safeRun(request);
+}
+
 // GET also supported so Vercel Cron's GET pings work without changes
 export async function GET(request: Request) {
-  return POST(request);
+  return safeRun(request);
 }
