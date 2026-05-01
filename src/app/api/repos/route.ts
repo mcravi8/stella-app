@@ -61,6 +61,13 @@ const STRATEGIES = [
   /* 21 */ (p: number) => ({ q: `topic:education stars:>500`, sort: "stars", page: p }),            // Education
   /* 22 */ (p: number) => ({ q: `topic:database stars:>300`, sort: "stars", page: p }),             // Databases
   /* 23 */ (p: number) => ({ q: `topic:security stars:>300`, sort: "stars", page: p }),             // Security
+
+  // ─── Discovery buckets — surface non-obvious repos by velocity / recency / size ───
+  // The upper bound on stars is what excludes "obvious" repos the user already knows.
+  /* 24 */ (p: number) => ({ q: `stars:50..500 pushed:>${daysAgo(7)} created:>${daysAgo(90)}`, sort: "updated", page: p }),    // Rising — young repo gaining first traction
+  /* 25 */ (p: number) => ({ q: `stars:200..2000 pushed:>${daysAgo(14)}`, sort: "stars", page: p }),                          // Sleeper hits — mid-tier still active
+  /* 26 */ (p: number) => ({ q: `stars:25..200 pushed:>${daysAgo(30)} created:>${daysAgo(180)}`, sort: "updated", page: p }), // Hidden gems — small but recently active
+  /* 27 */ (p: number) => ({ q: `stars:>5000 pushed:>${daysAgo(7)}`, sort: "updated", page: p }),                             // Active classics — famous + still shipping
 ];
 
 function daysAgo(n: number): string {
@@ -184,7 +191,9 @@ export async function GET(request: Request) {
     if (ghRes.ok) {
       const data = await ghRes.json();
       repos = (data.items as GHRepo[] || [])
-        .filter(r => !swipedSet.has(r.full_name) && r.stargazers_count >= 100)
+        // Star floor lowered to 25 so the "Hidden gems" strategy (stars:25..200) can surface.
+        // Each strategy applies its own per-query floor, so the global floor only catches strays.
+        .filter(r => !swipedSet.has(r.full_name) && r.stargazers_count >= 25)
         .map(mapRepo);
     }
 

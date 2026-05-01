@@ -6,6 +6,7 @@ interface SwipeDeckProps {
   repos: Repo[];
   onLoadMore: () => void;
   providerToken: string | null;
+  onSwiped?: (direction: "left" | "right") => void;
 }
 
 interface Enhancement {
@@ -17,7 +18,7 @@ type EnhanceState = "loading" | "done" | "failed";
 
 const PREFETCH_AHEAD = 5;
 
-export default function SwipeDeck({ repos, onLoadMore, providerToken }: SwipeDeckProps) {
+export default function SwipeDeck({ repos, onLoadMore, providerToken, onSwiped }: SwipeDeckProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [enhancements, setEnhancements] = useState<Record<string, Enhancement>>({});
@@ -92,8 +93,9 @@ export default function SwipeDeck({ repos, onLoadMore, providerToken }: SwipeDec
     } finally {
       setIsActionLoading(false);
       setCurrentIndex(prev => prev + 1);
+      onSwiped?.(direction);
     }
-  }, [currentRepo, isActionLoading, providerToken]);
+  }, [currentRepo, isActionLoading, providerToken, onSwiped]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
