@@ -72,7 +72,7 @@ export default async function ProfilePage({ params }: Props) {
         </div>
       </nav>
 
-      <main className="max-w-2xl mx-auto px-4 py-10">
+      <main className="max-w-2xl mx-auto px-4 pt-10 pb-28">
         <div className="flex gap-5 items-start mb-10">
           <Image src={ghUser.avatar_url} alt={username} width={88} height={88} className="rounded-2xl" unoptimized />
           <div className="flex-1">

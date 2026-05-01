@@ -60,7 +60,7 @@ export default async function MyReposPage() {
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-4 pt-8 pb-28">
         {!swipes?.length ? (
           <div className="text-center py-24">
             <div className="text-5xl mb-4">🚀</div>

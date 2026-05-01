@@ -141,7 +141,7 @@ export default function SettingsClient({ username, initialInterests, ownRepos, s
         </div>
       </nav>
 
-      <main className="max-w-2xl mx-auto px-4 py-10 space-y-12">
+      <main className="max-w-2xl mx-auto px-4 pt-10 pb-28 space-y-12">
         <section>
           <div className="flex items-center justify-between mb-4 gap-4">
             <div>

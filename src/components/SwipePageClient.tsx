@@ -116,38 +116,6 @@ export default function SwipePageClient({ providerToken, userName, needsStarsImp
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
               </svg>
             </button>
-            <Link
-              href="/search"
-              className="text-muted hover:text-accent transition-colors p-2 rounded-lg hover:bg-surface"
-              title="Search"
-              aria-label="Search"
-            >
-              <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <circle cx="11" cy="11" r="7" />
-                <path strokeLinecap="round" d="M20 20l-3.5-3.5" />
-              </svg>
-            </Link>
-            <Link
-              href="/my-repos"
-              className="text-muted hover:text-accent transition-colors p-2 rounded-lg hover:bg-surface"
-              title="Starred repos"
-              aria-label="Starred repos"
-            >
-              <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinejoin="round" d="M12 3l2.7 5.5 6 .9-4.4 4.3 1 6-5.3-2.8L6.7 19.7l1-6L3.3 9.4l6-.9L12 3z" />
-              </svg>
-            </Link>
-            <Link
-              href={`/profile/${userName}`}
-              className="text-muted hover:text-accent transition-colors p-2 rounded-lg hover:bg-surface"
-              title="Profile"
-              aria-label="Profile"
-            >
-              <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <circle cx="12" cy="8" r="4" />
-                <path strokeLinecap="round" d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
-              </svg>
-            </Link>
             <ThemeToggle />
             <button
               onClick={handleLogout}
@@ -163,7 +131,7 @@ export default function SwipePageClient({ providerToken, userName, needsStarsImp
         </div>
       </nav>
 
-      <main className="flex-1 min-h-0 max-w-sm w-full mx-auto px-4 py-4 flex flex-col">
+      <main className="flex-1 min-h-0 max-w-sm w-full mx-auto px-4 pt-4 pb-24 flex flex-col">
         {loading ? <DeckSkeleton /> : (
           <SwipeDeck repos={repos} onLoadMore={handleLoadMore} providerToken={providerToken} />
         )}
@@ -172,7 +140,10 @@ export default function SwipePageClient({ providerToken, userName, needsStarsImp
       <SubmitRepoModal isOpen={submitOpen} onClose={() => setSubmitOpen(false)} />
 
       {importToast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-foreground shadow-lg flex items-center gap-2">
+        <div
+          className="fixed left-1/2 -translate-x-1/2 z-50 bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-foreground shadow-lg flex items-center gap-2"
+          style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 84px)" }}
+        >
           <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
           </svg>
