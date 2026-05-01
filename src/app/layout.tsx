@@ -46,6 +46,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             tapping the home-screen icon opens inside Safari with the URL bar +
             toolbar visible. Forcing it here. */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
+        {/* Some iOS Safari versions only honour the precomposed variant of
+            apple-touch-icon. Adding it alongside Next.js's auto-emitted
+            apple-touch-icon link as a belt-and-suspenders fix. */}
+        <link rel="apple-touch-icon-precomposed" href="/apple-icon" />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})()`,
