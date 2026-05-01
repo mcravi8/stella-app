@@ -88,7 +88,7 @@ export default function BottomNav() {
       aria-label="Primary"
     >
       <ul
-        className="pointer-events-auto flex items-center gap-1 bg-surface/85 backdrop-blur-xl border border-border rounded-full px-2 py-1.5"
+        className="pointer-events-auto flex items-center gap-3 bg-surface/85 backdrop-blur-xl border border-border rounded-full px-3 py-2"
         style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.18), 0 1px 0 rgba(255,255,255,0.04) inset" }}
       >
         {tabs.map(tab => {
@@ -97,7 +97,8 @@ export default function BottomNav() {
             <li key={tab.label}>
               <Link
                 href={tab.href}
-                className={`flex items-center justify-center w-12 h-11 rounded-full transition-colors ${
+                prefetch
+                className={`flex items-center justify-center w-14 h-12 rounded-full transition-colors ${
                   active
                     ? "bg-foreground text-background"
                     : "text-muted hover:text-foreground hover:bg-background/60"

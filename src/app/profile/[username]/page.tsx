@@ -73,27 +73,56 @@ export default async function ProfilePage({ params }: Props) {
       </nav>
 
       <main className="max-w-2xl mx-auto px-4 pt-10 pb-28">
-        <div className="flex gap-5 items-start mb-10">
-          <Image src={ghUser.avatar_url} alt={username} width={88} height={88} className="rounded-2xl" unoptimized />
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-foreground font-bold text-2xl">{ghUser.name || username}</h1>
-              {profile && <span className="px-2 py-0.5 bg-accent/20 text-accent text-xs rounded-full font-medium">on Stella</span>}
-            </div>
-            <p className="text-muted text-sm mb-2">@{username}</p>
-            {(profile?.bio || ghUser.bio) && (
-              <p className="text-foreground/70 text-sm mb-3 whitespace-pre-wrap">
-                {profile?.bio || ghUser.bio}
-              </p>
-            )}
-            <div className="flex gap-4 text-xs text-muted">
-              <span><span className="text-foreground font-medium">{ghUser.followers}</span> followers</span>
-              <span><span className="text-foreground font-medium">{ghUser.public_repos}</span> repos</span>
+        <div className="mb-10">
+          {/* Header row: avatar + identity. The GitHub link moves under the bio
+              so it doesn't squeeze the name into an ugly wrap. */}
+          <div className="flex items-start gap-4 mb-3">
+            <Image
+              src={ghUser.avatar_url}
+              alt={username}
+              width={80}
+              height={80}
+              className="rounded-2xl shrink-0"
+              unoptimized
+            />
+            <div className="flex-1 min-w-0 pt-1">
+              <h1 className="text-foreground font-bold text-2xl leading-tight break-words">
+                {ghUser.name || username}
+              </h1>
+              <p className="text-muted text-sm mt-0.5">@{username}</p>
+              {profile && (
+                <span className="inline-block mt-2 px-2 py-0.5 bg-accent/20 text-accent text-xs rounded-full font-medium">
+                  on Stella
+                </span>
+              )}
             </div>
           </div>
-          <a href={ghUser.html_url} target="_blank" rel="noopener noreferrer"
-            className="text-muted hover:text-foreground text-xs border border-border px-3 py-1.5 rounded-lg transition-colors shrink-0">
-            GitHub ↗
+
+          {(profile?.bio || ghUser.bio) && (
+            <p className="text-foreground/80 text-sm mb-4 whitespace-pre-wrap leading-relaxed">
+              {profile?.bio || ghUser.bio}
+            </p>
+          )}
+
+          <div className="flex items-center gap-4 text-sm text-muted mb-4">
+            <span>
+              <span className="text-foreground font-semibold">{ghUser.followers}</span> followers
+            </span>
+            <span>
+              <span className="text-foreground font-semibold">{ghUser.public_repos}</span> repos
+            </span>
+          </div>
+
+          <a
+            href={ghUser.html_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-muted hover:text-foreground text-sm border border-border px-3 py-1.5 rounded-lg transition-colors"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 16 16" aria-hidden>
+              <path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 005.47 7.59c.4.07.55-.17.55-.38v-1.32c-2.22.48-2.69-1.07-2.69-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.81.06 1.23.83 1.23.83.72 1.23 1.88.88 2.34.67.07-.52.28-.88.51-1.08-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.13 0 0 .67-.21 2.2.82a7.65 7.65 0 014 0c1.53-1.04 2.2-.82 2.2-.82.44 1.11.16 1.93.08 2.13.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.74.54 1.49v2.21c0 .21.15.46.55.38A8 8 0 0016 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            View on GitHub
           </a>
         </div>
 
