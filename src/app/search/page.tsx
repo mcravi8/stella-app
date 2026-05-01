@@ -72,7 +72,7 @@ export default function SearchPage() {
         </div>
       </nav>
 
-      <main className="max-w-2xl mx-auto px-4 py-10">
+      <main className="max-w-2xl mx-auto px-4 pt-10 pb-28">
         <h1 className="text-2xl font-bold text-foreground mb-2">Search GitHub users</h1>
         <p className="text-muted text-sm mb-8">Find any GitHub account and explore their repos</p>
 

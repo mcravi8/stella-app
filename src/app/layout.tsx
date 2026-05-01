@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import BottomNav from "@/components/BottomNav";
 
 export const metadata: Metadata = {
   title: "Stella — Swipe, Star, Build",
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body className="bg-background text-foreground min-h-screen font-sans antialiased">
         {children}
+        <BottomNav />
       </body>
     </html>
   );
