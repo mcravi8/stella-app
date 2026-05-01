@@ -2,6 +2,13 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  // API routes do their own auth (or are intentionally public, like /api/scrape-hn-show
+  // hit by cron). Running the cookie-refreshing supabase.auth.getUser() here on calls
+  // with no cookies has thrown MIDDLEWARE_INVOCATION_FAILED in production. Skip them.
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,11 +25,19 @@ export async function middleware(request: NextRequest) {
       },
     }
   );
-  const { data: { user } } = await supabase.auth.getUser();
+
+  // Don't let a transient Supabase hiccup crash the entire middleware chain
+  // and surface as MIDDLEWARE_INVOCATION_FAILED to the user.
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch (err) {
+    console.error('[middleware] supabase.auth.getUser() failed:', err);
+  }
 
   const PUBLIC_PATHS = ['/login', '/signup', '/auth/', '/success', '/cancel', '/unauthorized'];
-  const isPublic = PUBLIC_PATHS.some(p => request.nextUrl.pathname.startsWith(p))
-    || request.nextUrl.pathname.startsWith('/api/');
+  const isPublic = PUBLIC_PATHS.some(p => request.nextUrl.pathname.startsWith(p));
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
@@ -34,6 +49,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|api/webhooks/stripe|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
