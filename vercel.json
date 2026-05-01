@@ -3,6 +3,10 @@
     {
       "path": "/api/scrape-hn-show",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/scrape-reddit",
+      "schedule": "30 6 * * *"
     }
   ]
 }

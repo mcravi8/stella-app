@@ -76,6 +76,18 @@ function daysAgo(n: number): string {
   return d.toISOString().split("T")[0];
 }
 
+// Maps an external_repos.source value to a human-readable badge for the swipe card.
+// Null source / unrecognised value → just "via <source>" so we never silently lose attribution.
+function labelForSource(source: string | null | undefined): string | null {
+  if (!source) return null;
+  if (source === "hn_show") return "via Show HN";
+  if (source.startsWith("reddit_")) {
+    const sub = source.slice("reddit_".length);
+    return sub ? `via r/${sub}` : "via Reddit";
+  }
+  return `via ${source}`;
+}
+
 function synthesizeDescription(description: string | null, topics: string[]): string {
   const base = (description || "").trim();
   if (base.length >= 80) return base;
@@ -159,7 +171,7 @@ export async function GET(request: Request) {
         .filter(r => r.repo_data && !swipedSet.has(r.repo_full_name))
         .map(r => ({
           ...mapRepo(r.repo_data as GHRepo),
-          source_label: r.source === "hn_show" ? "via Show HN" : r.source ? `via ${r.source}` : null,
+          source_label: labelForSource(r.source),
           source_url: r.source_url ?? null,
         }));
     }
