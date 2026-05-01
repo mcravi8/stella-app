@@ -9,6 +9,22 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
+  // PWA manifest + auto-generated icon routes must be reachable to logged-out users
+  // (the browser fetches them on the login page itself, before any auth context
+  // exists). Without this, the manifest fetch gets redirected to /login and parsed
+  // as HTML — which kills standalone-mode launch from the home screen.
+  const p = request.nextUrl.pathname;
+  if (
+    p === '/manifest.webmanifest' ||
+    p === '/icon' ||
+    p === '/apple-icon' ||
+    p === '/favicon.ico' ||
+    p.startsWith('/icon/') ||
+    p.startsWith('/apple-icon/')
+  ) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
