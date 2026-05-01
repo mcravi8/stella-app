@@ -58,7 +58,7 @@ export default function SearchPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="border-b border-border sticky top-0 bg-background/90 backdrop-blur-sm z-40">
+      <nav className="fixed top-0 left-0 right-0 border-b border-border bg-background/95 backdrop-blur-md z-40">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-accent rounded-xl flex items-center justify-center">
@@ -72,7 +72,7 @@ export default function SearchPage() {
         </div>
       </nav>
 
-      <main className="max-w-2xl mx-auto px-4 pt-10 pb-28">
+      <main className="max-w-2xl mx-auto px-4 pt-24 pb-28">
         <h1 className="text-2xl font-bold text-foreground mb-2">Search GitHub users</h1>
         <p className="text-muted text-sm mb-8">Find any GitHub account and explore their repos</p>
 

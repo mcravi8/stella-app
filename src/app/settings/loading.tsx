@@ -1,8 +1,8 @@
 export default function Loading() {
   return (
     <div className="min-h-screen bg-background animate-pulse">
-      <nav className="border-b border-border h-14" />
-      <main className="max-w-2xl mx-auto px-4 pt-10 pb-28 space-y-12">
+      <nav className="fixed top-0 left-0 right-0 z-40 border-b border-border bg-background h-14" />
+      <main className="max-w-2xl mx-auto px-4 pt-24 pb-28 space-y-12">
         <section>
           <div className="h-6 w-24 rounded bg-border/60 mb-2" />
           <div className="h-3 w-64 rounded bg-border/60 mb-4" />

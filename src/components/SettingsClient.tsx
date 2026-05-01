@@ -127,7 +127,7 @@ export default function SettingsClient({ username, initialInterests, ownRepos, s
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="border-b border-border sticky top-0 bg-background/90 backdrop-blur-sm z-40">
+      <nav className="fixed top-0 left-0 right-0 border-b border-border bg-background/95 backdrop-blur-md z-40">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-accent rounded-xl flex items-center justify-center">
@@ -141,7 +141,7 @@ export default function SettingsClient({ username, initialInterests, ownRepos, s
         </div>
       </nav>
 
-      <main className="max-w-2xl mx-auto px-4 pt-10 pb-28 space-y-12">
+      <main className="max-w-2xl mx-auto px-4 pt-24 pb-28 space-y-12">
         <section>
           <div className="flex items-center justify-between mb-4 gap-4">
             <div>
