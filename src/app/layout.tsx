@@ -39,6 +39,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        {/* Next.js 15's metadata.appleWebApp config emits the modern
+            "mobile-web-app-capable" tag, but iOS Safari ONLY honours the legacy
+            "apple-mobile-web-app-capable" name when deciding whether to launch
+            in standalone mode from the home screen. Without this exact tag,
+            tapping the home-screen icon opens inside Safari with the URL bar +
+            toolbar visible. Forcing it here. */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})()`,
