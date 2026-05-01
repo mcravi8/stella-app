@@ -11,27 +11,32 @@ import ThemeToggle from "./ThemeToggle";
 interface Props {
   providerToken: string | null;
   userName: string;
+  needsStarsImport?: boolean;
 }
 
-export default function SwipePageClient({ providerToken, userName }: Props) {
+export default function SwipePageClient({ providerToken, userName, needsStarsImport }: Props) {
   const [repos, setRepos] = useState<Repo[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [submitOpen, setSubmitOpen] = useState(false);
+  const [importToast, setImportToast] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
-  const loadRepos = useCallback(async (pageNum: number) => {
+  const loadRepos = useCallback(async (pageNum: number, replace = false) => {
     try {
       const res = await fetch(`/api/repos?page=${pageNum}`);
       const data = await res.json();
       if (data.repos?.length) {
         setRepos(prev => {
+          if (replace) return data.repos;
           const existing = new Set(prev.map((r: Repo) => r.id));
           const fresh = data.repos.filter((r: Repo) => !existing.has(r.id));
           return [...prev, ...fresh];
         });
         setPage(pageNum + 1);
+      } else if (replace) {
+        setRepos([]);
       }
     } catch (e) {
       console.error("Failed to load repos:", e);
@@ -43,6 +48,32 @@ export default function SwipePageClient({ providerToken, userName }: Props) {
   useEffect(() => {
     loadRepos(1);
   }, [loadRepos]);
+
+  // Backfill the user's pre-existing GitHub stars into Stella the first time
+  // they hit the feed. Runs once per user (the API short-circuits if already done).
+  // After it resolves, re-fetch page 1 so any stars now in the swipes table are
+  // filtered out of the feed instead of appearing as suggestions.
+  useEffect(() => {
+    if (!needsStarsImport) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/import-stars", { method: "POST" });
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (data.imported && data.imported > 0) {
+          setImportToast(`Imported ${data.imported} starred repo${data.imported === 1 ? "" : "s"} from GitHub`);
+          setTimeout(() => setImportToast(null), 4000);
+          // Re-fetch from page 1, replacing the deck, so dedupe applies immediately.
+          setPage(1);
+          await loadRepos(1, true);
+        }
+      } catch (e) {
+        console.error("[stars-import] failed:", e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [needsStarsImport, loadRepos]);
 
   const handleLoadMore = useCallback(() => {
     loadRepos(page);
@@ -139,6 +170,15 @@ export default function SwipePageClient({ providerToken, userName }: Props) {
       </main>
 
       <SubmitRepoModal isOpen={submitOpen} onClose={() => setSubmitOpen(false)} />
+
+      {importToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-foreground shadow-lg flex items-center gap-2">
+          <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+          {importToast}
+        </div>
+      )}
     </div>
   );
 }
