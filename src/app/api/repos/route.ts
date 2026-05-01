@@ -81,10 +81,7 @@ function daysAgo(n: number): string {
 function labelForSource(source: string | null | undefined): string | null {
   if (!source) return null;
   if (source === "hn_show") return "via Show HN";
-  if (source.startsWith("reddit_")) {
-    const sub = source.slice("reddit_".length);
-    return sub ? `via r/${sub}` : "via Reddit";
-  }
+  if (source === "ossinsight") return "via OSSInsight trending";
   return `via ${source}`;
 }
 
