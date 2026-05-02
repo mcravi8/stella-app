@@ -68,6 +68,12 @@ const STRATEGIES = [
   /* 25 */ (p: number) => ({ q: `stars:200..2000 pushed:>${daysAgo(14)}`, sort: "stars", page: p }),                          // Sleeper hits — mid-tier still active
   /* 26 */ (p: number) => ({ q: `stars:25..200 pushed:>${daysAgo(30)} created:>${daysAgo(180)}`, sort: "updated", page: p }), // Hidden gems — small but recently active
   /* 27 */ (p: number) => ({ q: `stars:>5000 pushed:>${daysAgo(7)}`, sort: "updated", page: p }),                             // Active classics — famous + still shipping
+
+  // ─── Mid-tier sweet spot: 2K–10K stars. The user's stated favourite range —
+  // proven enough that there's signal, small enough that they probably haven't
+  // already heard of them.
+  /* 28 */ (p: number) => ({ q: `stars:5000..10000 pushed:>${daysAgo(14)} created:>${daysAgo(365)}`, sort: "stars", page: p }),  // Mid-tier breakouts (newer, in-range, active)
+  /* 29 */ (p: number) => ({ q: `stars:2000..10000 pushed:>${daysAgo(30)}`, sort: "updated", page: p }),                         // Mid-tier active (broader range, just needs recent activity)
 ];
 
 function daysAgo(n: number): string {
