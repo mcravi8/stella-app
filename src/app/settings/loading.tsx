@@ -2,7 +2,10 @@ export default function Loading() {
   return (
     <div
       className="h-dvh flex flex-col bg-background animate-pulse overflow-hidden"
-      style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
+      style={{
+        paddingTop: "max(env(safe-area-inset-top), 12px)",
+        paddingBottom: "max(env(safe-area-inset-bottom), 8px)",
+      }}
     >
       <nav className="shrink-0 border-b border-border h-14" />
       <div className="flex-1 overflow-y-auto">

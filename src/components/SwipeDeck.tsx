@@ -192,11 +192,13 @@ export default function SwipeDeck({ repos, onLoadMore, providerToken, onSwiped }
       </div>
 
       {/* One-step undo button. Slides up below the deck for ~6s after each swipe.
-          Disappears after timeout, on next swipe (replaced), or when used. */}
+          Disappears after timeout, on next swipe (replaced), or when used.
+          Pinned to viewport so it sits in the gap between card bottom and the
+          floating bottom-nav island, never overlapping the card's GitHub link. */}
       {lastSwipe && (
         <div
-          className="absolute left-1/2 -translate-x-1/2 z-30 motion-safe:animate-[fadeIn_180ms_ease-out]"
-          style={{ bottom: 4 }}
+          className="fixed left-1/2 -translate-x-1/2 z-30 motion-safe:animate-[fadeIn_180ms_ease-out]"
+          style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 84px)" }}
         >
           <button
             onClick={handleUndo}
