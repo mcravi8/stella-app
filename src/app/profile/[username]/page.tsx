@@ -3,6 +3,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+// Always render fresh — bio + showcased-repo selection update from /settings,
+// and we don't want the prefetched RSC payload to lag behind the most recent save.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type Props = { params: Promise<{ username: string }> };
 
 export default async function ProfilePage({ params }: Props) {

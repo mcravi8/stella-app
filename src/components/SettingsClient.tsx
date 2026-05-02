@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { INTEREST_TAGS } from "@/lib/interests";
@@ -27,6 +28,7 @@ interface Props {
 type SaveState = "idle" | "saving" | "saved" | "error";
 
 export default function SettingsClient({ username, initialInterests, ownRepos, showcasedRepos: initialShowcasedRepos, initialBio }: Props) {
+  const router = useRouter();
   const [bio, setBio] = useState<string>(initialBio || "");
   const [bioState, setBioState] = useState<SaveState>("idle");
   const [interests, setInterests] = useState<Set<string>>(new Set(initialInterests));
@@ -81,6 +83,9 @@ export default function SettingsClient({ username, initialInterests, ownRepos, s
     setShowcaseState("idle");
   };
 
+  // After every save we call router.refresh() so the destination pages
+  // (profile, my-repos, home feed) re-fetch on next navigation instead of
+  // serving Next.js's prefetched / cached RSC payload from before the save.
   const saveBio = async () => {
     setBioState("saving");
     try {
@@ -89,7 +94,12 @@ export default function SettingsClient({ username, initialInterests, ownRepos, s
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bio }),
       });
-      setBioState(res.ok ? "saved" : "error");
+      if (res.ok) {
+        setBioState("saved");
+        router.refresh();
+      } else {
+        setBioState("error");
+      }
     } catch {
       setBioState("error");
     }
@@ -103,7 +113,12 @@ export default function SettingsClient({ username, initialInterests, ownRepos, s
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tags: Array.from(interests) }),
       });
-      setInterestsState(res.ok ? "saved" : "error");
+      if (res.ok) {
+        setInterestsState("saved");
+        router.refresh();
+      } else {
+        setInterestsState("error");
+      }
     } catch {
       setInterestsState("error");
     }
@@ -119,7 +134,12 @@ export default function SettingsClient({ username, initialInterests, ownRepos, s
           repos: showcasedRepos.map(r => ({ full_name: r.full_name, repo_data: r })),
         }),
       });
-      setShowcaseState(res.ok ? "saved" : "error");
+      if (res.ok) {
+        setShowcaseState("saved");
+        router.refresh();
+      } else {
+        setShowcaseState("error");
+      }
     } catch {
       setShowcaseState("error");
     }
@@ -140,7 +160,12 @@ export default function SettingsClient({ username, initialInterests, ownRepos, s
             </div>
             <span className="font-bold text-foreground text-lg">Stella</span>
           </Link>
-          <Link href={`/profile/${username}`} className="text-muted hover:text-accent text-sm transition-colors">View profile</Link>
+          <Link href={`/profile/${username}`} className="inline-flex items-center gap-1 text-muted hover:text-foreground text-sm transition-colors" aria-label="Back to profile">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </Link>
         </div>
       </nav>
 
