@@ -36,31 +36,41 @@ const FALLBACK_REPOS = [
 ];
 
 // Query strategies rotated across pages. Indices are referenced by INTEREST_STRATEGY_MAP.
+//
+// Niche-first design:
+//   - Topical and industry strategies sort by `updated`, not `stars`. Sorting by
+//     stars on a topic always returns the same handful of mega-repos (e.g.
+//     `topic:fintech sort:stars` → ccxt, OpenBB, etc). Sorting by recently-updated
+//     surfaces repos with momentum that the user probably hasn't heard of yet.
+//   - Almost every topical/industry strategy adds a stars upper-bound so we
+//     skip the obvious top names and reveal the long tail.
+//   - Trending and language strategies still use `sort: stars` (the right call
+//     for recency-bounded queries — most stars in the last week is a real signal).
 const STRATEGIES = [
   /* 0  */ (p: number) => ({ q: `stars:>50 pushed:>${daysAgo(7)}`, sort: "stars", page: p }),       // trending 7d
   /* 1  */ (p: number) => ({ q: `stars:>100 pushed:>${daysAgo(30)}`, sort: "stars", page: p }),     // trending 30d
-  /* 2  */ (p: number) => ({ q: `topic:machine-learning stars:>200`, sort: "stars", page: p }),     // ML
-  /* 3  */ (p: number) => ({ q: `topic:developer-tools stars:>200`, sort: "stars", page: p }),      // dev tools
+  /* 2  */ (p: number) => ({ q: `topic:machine-learning stars:200..15000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }), // ML niche
+  /* 3  */ (p: number) => ({ q: `topic:developer-tools stars:200..10000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),  // dev tools niche
   /* 4  */ (p: number) => ({ q: `language:typescript stars:>500 pushed:>${daysAgo(180)}`, sort: "stars", page: p }),
   /* 5  */ (p: number) => ({ q: `language:python stars:>500 pushed:>${daysAgo(180)}`, sort: "stars", page: p }),
-  /* 6  */ (p: number) => ({ q: `topic:frontend stars:>300`, sort: "updated", page: p }),
-  /* 7  */ (p: number) => ({ q: `topic:cli stars:>300`, sort: "stars", page: p }),
+  /* 6  */ (p: number) => ({ q: `topic:frontend stars:300..10000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),         // frontend niche
+  /* 7  */ (p: number) => ({ q: `topic:cli stars:200..10000 pushed:>${daysAgo(365)}`, sort: "updated", page: p }),               // CLI niche
   /* 8  */ (p: number) => ({ q: `language:rust stars:>200 pushed:>${daysAgo(180)}`, sort: "stars", page: p }),
   /* 9  */ (p: number) => ({ q: `language:go stars:>200 pushed:>${daysAgo(180)}`, sort: "stars", page: p }),
-  /* 10 */ (p: number) => ({ q: `topic:ai stars:>500`, sort: "stars", page: p }),
-  /* 11 */ (p: number) => ({ q: `topic:mobile stars:>300`, sort: "stars", page: p }),
-  /* 12 */ (p: number) => ({ q: `topic:llm stars:>300`, sort: "stars", page: p }),                  // LLMs
-  /* 13 */ (p: number) => ({ q: `topic:agents stars:>200 pushed:>${daysAgo(180)}`, sort: "stars", page: p }), // AI Agents
-  /* 14 */ (p: number) => ({ q: `topic:react stars:>500`, sort: "stars", page: p }),                // React
-  /* 15 */ (p: number) => ({ q: `topic:nextjs stars:>300`, sort: "stars", page: p }),               // Next.js
-  /* 16 */ (p: number) => ({ q: `topic:vue stars:>300`, sort: "stars", page: p }),                  // Vue
-  /* 17 */ (p: number) => ({ q: `topic:svelte stars:>200`, sort: "stars", page: p }),               // Svelte
-  /* 18 */ (p: number) => ({ q: `topic:backend stars:>300`, sort: "stars", page: p }),              // Backend
-  /* 19 */ (p: number) => ({ q: `topic:robotics stars:>200`, sort: "stars", page: p }),             // Robotics
-  /* 20 */ (p: number) => ({ q: `topic:blockchain stars:>500`, sort: "stars", page: p }),           // Blockchain
-  /* 21 */ (p: number) => ({ q: `topic:education stars:>500`, sort: "stars", page: p }),            // Education
-  /* 22 */ (p: number) => ({ q: `topic:database stars:>300`, sort: "stars", page: p }),             // Databases
-  /* 23 */ (p: number) => ({ q: `topic:security stars:>300`, sort: "stars", page: p }),             // Security
+  /* 10 */ (p: number) => ({ q: `topic:ai stars:500..15000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),                // AI niche
+  /* 11 */ (p: number) => ({ q: `topic:mobile stars:300..10000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),            // mobile niche
+  /* 12 */ (p: number) => ({ q: `topic:llm stars:300..15000 pushed:>${daysAgo(120)}`, sort: "updated", page: p }),               // LLMs niche
+  /* 13 */ (p: number) => ({ q: `topic:agents stars:200..10000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),            // AI Agents niche
+  /* 14 */ (p: number) => ({ q: `topic:react stars:500..15000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),             // React niche
+  /* 15 */ (p: number) => ({ q: `topic:nextjs stars:300..10000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),            // Next.js niche
+  /* 16 */ (p: number) => ({ q: `topic:vue stars:300..10000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),               // Vue niche
+  /* 17 */ (p: number) => ({ q: `topic:svelte stars:200..10000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),            // Svelte niche
+  /* 18 */ (p: number) => ({ q: `topic:backend stars:300..10000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),           // Backend niche
+  /* 19 */ (p: number) => ({ q: `topic:robotics stars:200..10000 pushed:>${daysAgo(365)}`, sort: "updated", page: p }),          // Robotics niche
+  /* 20 */ (p: number) => ({ q: `topic:blockchain stars:500..15000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),        // Blockchain niche
+  /* 21 */ (p: number) => ({ q: `topic:education stars:500..15000 pushed:>${daysAgo(365)}`, sort: "updated", page: p }),         // Education niche
+  /* 22 */ (p: number) => ({ q: `topic:database stars:300..15000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),          // Databases niche
+  /* 23 */ (p: number) => ({ q: `topic:security stars:300..15000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),          // Security niche
 
   // ─── Discovery buckets — surface non-obvious repos by velocity / recency / size ───
   // The upper bound on stars is what excludes "obvious" repos the user already knows.
@@ -78,19 +88,19 @@ const STRATEGIES = [
   // ─── Industry-specific gaps: domains the topical strategies above don't cover yet.
   // Each industry in INTEREST_STRATEGY_MAP boosts a curated mix of these (direct)
   // plus existing related strategies (e.g. Finance also boosts Python + Databases).
-  /* 30 */ (p: number) => ({ q: `topic:quantitative-finance stars:>200`, sort: "stars", page: p }),    // Quant finance
-  /* 31 */ (p: number) => ({ q: `topic:algorithmic-trading stars:>100`, sort: "stars", page: p }),     // Algo trading
-  /* 32 */ (p: number) => ({ q: `topic:fintech stars:>300`, sort: "stars", page: p }),                 // FinTech
-  /* 33 */ (p: number) => ({ q: `topic:time-series stars:>200`, sort: "stars", page: p }),             // Time-series (related to finance / data science)
-  /* 34 */ (p: number) => ({ q: `topic:trading-bot stars:>100 pushed:>${daysAgo(180)}`, sort: "stars", page: p }), // Trading bots
-  /* 35 */ (p: number) => ({ q: `topic:data-science stars:>500`, sort: "stars", page: p }),            // Data science (broad)
-  /* 36 */ (p: number) => ({ q: `topic:jupyter-notebook stars:>200`, sort: "stars", page: p }),        // Notebooks (DS / research)
-  /* 37 */ (p: number) => ({ q: `topic:deep-learning stars:>500`, sort: "stars", page: p }),           // Deep learning
-  /* 38 */ (p: number) => ({ q: `topic:bioinformatics stars:>100`, sort: "stars", page: p }),          // Bioinformatics
-  /* 39 */ (p: number) => ({ q: `topic:devops stars:>500`, sort: "stars", page: p }),                  // DevOps (broad)
-  /* 40 */ (p: number) => ({ q: `topic:kubernetes stars:>500`, sort: "stars", page: p }),              // Kubernetes
-  /* 41 */ (p: number) => ({ q: `topic:game-development stars:>300`, sort: "stars", page: p }),        // Game dev
-  /* 42 */ (p: number) => ({ q: `topic:research stars:>200`, sort: "stars", page: p }),                // Academic / research code
+  /* 30 */ (p: number) => ({ q: `topic:quantitative-finance stars:100..10000 pushed:>${daysAgo(365)}`, sort: "updated", page: p }),    // Quant finance niche
+  /* 31 */ (p: number) => ({ q: `topic:algorithmic-trading stars:50..10000 pushed:>${daysAgo(365)}`, sort: "updated", page: p }),       // Algo trading niche
+  /* 32 */ (p: number) => ({ q: `topic:fintech stars:100..10000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),                  // FinTech niche
+  /* 33 */ (p: number) => ({ q: `topic:time-series stars:100..10000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),              // Time-series niche
+  /* 34 */ (p: number) => ({ q: `topic:trading-bot stars:50..5000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),                // Trading bots niche
+  /* 35 */ (p: number) => ({ q: `topic:data-science stars:300..15000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),             // Data science niche
+  /* 36 */ (p: number) => ({ q: `topic:jupyter-notebook stars:100..10000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),         // Notebooks niche
+  /* 37 */ (p: number) => ({ q: `topic:deep-learning stars:300..15000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),            // Deep learning niche
+  /* 38 */ (p: number) => ({ q: `topic:bioinformatics stars:50..5000 pushed:>${daysAgo(365)}`, sort: "updated", page: p }),             // Bioinformatics niche
+  /* 39 */ (p: number) => ({ q: `topic:devops stars:300..15000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),                   // DevOps niche
+  /* 40 */ (p: number) => ({ q: `topic:kubernetes stars:300..15000 pushed:>${daysAgo(180)}`, sort: "updated", page: p }),               // Kubernetes niche
+  /* 41 */ (p: number) => ({ q: `topic:game-development stars:200..10000 pushed:>${daysAgo(365)}`, sort: "updated", page: p }),         // Game dev niche
+  /* 42 */ (p: number) => ({ q: `topic:research stars:100..10000 pushed:>${daysAgo(365)}`, sort: "updated", page: p }),                 // Research niche
 ];
 
 function daysAgo(n: number): string {
@@ -155,16 +165,25 @@ export async function GET(request: Request) {
   let communityRepos: MappedRepo[] = [];
   let externalRepos: MappedRepo[] = [];
   let userInterests: string[] = [];
+  let providerToken: string | null = null;
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const [{ data: swipes }, { data: interests }] = await Promise.all([
+      const [{ data: swipes }, { data: interests }, { data: { session } }] = await Promise.all([
         supabase.from("swipes").select("repo_full_name").eq("user_id", user.id),
         supabase.from("user_interests").select("tag").eq("user_id", user.id),
+        supabase.auth.getSession(),
       ]);
       swipedSet = new Set(swipes?.map((s: { repo_full_name: string }) => s.repo_full_name) || []);
       userInterests = (interests || []).map((i: { tag: string }) => i.tag);
+      // GitHub Search API allows 10 req/min unauthenticated, 30/min with a token.
+      // We were hitting the unauthenticated cap and silently falling back to the
+      // (very mainstream) FALLBACK_REPOS pool, which is why the same big-name
+      // repos kept reappearing. Server-side env-var token also works as a fallback.
+      providerToken = session?.provider_token ?? process.env.GITHUB_API_TOKEN ?? null;
+    } else {
+      providerToken = process.env.GITHUB_API_TOKEN ?? null;
     }
     // Fetch approved community submissions (public — RLS allows anon read of approved)
     const { data: submitted } = await supabase
@@ -251,7 +270,12 @@ export async function GET(request: Request) {
 
   // Pick strategy based on page (rotate through strategies)
   const strategyIdx = (page - 1) % activeStrategies.length;
-  const ghPageNum = Math.ceil(page / activeStrategies.length);
+  // Bias toward deeper pages so we don't always return the literal top-30 of
+  // every query — that's how mega-stars dominate. Page-1 ish for a third of
+  // queries, then 2/3 mixed up to page 5. GitHub Search caps results at 1000
+  // (per_page=30 → page<=33) so this stays safely in range.
+  const sessionSeed = (page * 9301 + 49297) % 233280;
+  const ghPageNum = 1 + (sessionSeed % 5);
   const { q, sort, page: ghPage } = activeStrategies[strategyIdx](ghPageNum);
 
   const ghUrl = `https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=${sort}&order=desc&per_page=30&page=${ghPage}`;
@@ -261,6 +285,7 @@ export async function GET(request: Request) {
       headers: {
         Accept: "application/vnd.github+json",
         "User-Agent": "Stella-App/1.0",
+        ...(providerToken ? { Authorization: `Bearer ${providerToken}` } : {}),
       },
       next: { revalidate: 300 },
     });
@@ -276,8 +301,14 @@ export async function GET(request: Request) {
         .map(mapRepo);
     }
 
-    // If GitHub returned sparse results, supplement with fallback pool
-    if (repos.length < 10) {
+    // FALLBACK_REPOS is the static mainstream pool (React, ripgrep, vscode…).
+    // Only inject it when we genuinely have nothing else: no live results AND
+    // no community/external repos, AND the user hasn't expressed interests.
+    // Otherwise these famous repos drown out the niche signal we just worked
+    // hard to surface.
+    const hasOtherSignal = communityRepos.length > 0 || externalRepos.length > 0;
+    const userIsPersonalised = userInterests.length > 0;
+    if (repos.length < 5 && !hasOtherSignal && !userIsPersonalised) {
       const fallbackSlice = FALLBACK_REPOS
         .filter(r => !swipedSet.has(r.full_name))
         .filter(r => !repos.some(live => live.full_name === r.full_name))
