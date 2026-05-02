@@ -24,7 +24,7 @@ export default function AppleIcon() {
       >
         <svg viewBox="0 0 64 64" width={120} height={120}>
           <path
-            d="M20 18h16c4 0 8 3 8 7s-4 7-8 7H28c-2 0-4 1-4 3s2 3 4 3h16v8H28c-4 0-8-3-8-7s4-7 8-7h8c2 0 4-1 4-3s-2-3-4-3H20v-8z"
+            d="M32 6L39 23L57 24L43 35L47 53L32 43L17 53L21 35L7 24L25 23Z"
             fill="white"
           />
         </svg>

@@ -33,7 +33,7 @@ export default function OnboardingPage() {
         <div className="text-center mb-10">
           <div className="w-14 h-14 bg-accent rounded-2xl flex items-center justify-center mx-auto mb-5">
             <svg viewBox="0 0 64 64" className="w-9 h-9" fill="none">
-              <path d="M20 18h16c4 0 8 3 8 7s-4 7-8 7H28c-2 0-4 1-4 3s2 3 4 3h16v8H28c-4 0-8-3-8-7s4-7 8-7h8c2 0 4-1 4-3s-2-3-4-3H20v-8z" fill="white"/>
+              <path d="M32 6L39 23L57 24L43 35L47 53L32 43L17 53L21 35L7 24L25 23Z" fill="white"/>
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">What are you into?</h1>
