@@ -44,8 +44,11 @@ export default function SwipeCard({ repo, onSwipe, index, enhancing }: SwipeCard
   const controls = useAnimation();
   const isTop = index === 0;
 
-  const stackScale = 1 - index * 0.04;
-  const stackOffset = index * 10;
+  // Cards behind the top render at full size, perfectly stacked underneath.
+  // Earlier we used `scale: 1 - index * 0.04` for a faux-depth peek, but the
+  // moment the top card swiped off the new top would snap from 0.96 → 1, which
+  // read as a jarring resize. Hidden stacking is calmer and the swipe-off
+  // animation already telegraphs that a new card is arriving.
 
   // Tap-on-description toggles the card body between Stella's synthesized
   // description and the actual GitHub README.
@@ -100,10 +103,9 @@ export default function SwipeCard({ repo, onSwipe, index, enhancing }: SwipeCard
       style={{
         x: isTop ? x : 0,
         rotate: isTop ? rotate : 0,
-        scale: isTop ? 1 : stackScale,
         position: "absolute",
         zIndex: 10 - index,
-        top: stackOffset,
+        top: 0,
         width: "100%",
         height: "100%",
         transformOrigin: "top center",
