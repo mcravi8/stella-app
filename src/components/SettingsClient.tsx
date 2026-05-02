@@ -148,7 +148,12 @@ export default function SettingsClient({ username, initialInterests, ownRepos, s
   return (
     <div
       className="h-dvh flex flex-col bg-background overflow-hidden"
-      style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
+      style={{
+        // `max()` guards against the edge case where iOS Safari (non-PWA tab) returns
+        // 0 for safe-area-inset-top and the logo would slip behind the status bar.
+        paddingTop: "max(env(safe-area-inset-top), 12px)",
+        paddingBottom: "max(env(safe-area-inset-bottom), 8px)",
+      }}
     >
       <nav className="shrink-0 border-b border-border bg-background/90 backdrop-blur-sm z-40">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
