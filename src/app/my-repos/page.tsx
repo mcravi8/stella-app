@@ -2,6 +2,13 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
+// Always render fresh on the server. Router-cache prefetch may still serve
+// a stale RSC payload for ~5s, but the SwipeDeck client-side router.refresh()
+// after each swipe invalidates that. Together they make Starred update
+// the moment the user navigates to it after swiping right.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface RepoData {
   name: string;
   full_name: string;
