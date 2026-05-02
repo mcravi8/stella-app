@@ -74,17 +74,30 @@ export default function SwipeDeck({ repos, onLoadMore, providerToken, onSwiped }
     });
   }, [currentIndex, repos]);
 
+  // One-step undo. Tracks the most recent swipe so the user can press "Undo"
+  // within ~6 seconds to bring the card back. Replaced on each new swipe;
+  // cleared on timeout. Single-step only — we don't keep a stack.
+  const [lastSwipe, setLastSwipe] = useState<{ repo: Repo; direction: "left" | "right" } | null>(null);
+  const [undoing, setUndoing] = useState(false);
+
+  useEffect(() => {
+    if (!lastSwipe) return;
+    const t = setTimeout(() => setLastSwipe(null), 6000);
+    return () => clearTimeout(t);
+  }, [lastSwipe]);
+
   const handleSwipe = useCallback(async (direction: "left" | "right") => {
     if (!currentRepo || isActionLoading) return;
     setIsActionLoading(true);
+    const swiped = currentRepo;
     try {
       await fetch("/api/swipe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          repo_full_name: currentRepo.full_name,
+          repo_full_name: swiped.full_name,
           direction,
-          repo_data: currentRepo,
+          repo_data: swiped,
           provider_token: providerToken,
         }),
       });
@@ -93,18 +106,44 @@ export default function SwipeDeck({ repos, onLoadMore, providerToken, onSwiped }
     } finally {
       setIsActionLoading(false);
       setCurrentIndex(prev => prev + 1);
+      setLastSwipe({ repo: swiped, direction });
       onSwiped?.(direction);
     }
   }, [currentRepo, isActionLoading, providerToken, onSwiped]);
+
+  const handleUndo = useCallback(async () => {
+    if (!lastSwipe || undoing) return;
+    setUndoing(true);
+    try {
+      await fetch("/api/swipe", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          repo_full_name: lastSwipe.repo.full_name,
+          provider_token: providerToken,
+        }),
+      });
+      setCurrentIndex(prev => Math.max(0, prev - 1));
+      setLastSwipe(null);
+    } catch (e) {
+      console.error("Failed to undo swipe:", e);
+    } finally {
+      setUndoing(false);
+    }
+  }, [lastSwipe, undoing, providerToken]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight") handleSwipe("right");
       if (e.key === "ArrowLeft") handleSwipe("left");
+      if ((e.key === "z" || e.key === "Z") && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        handleUndo();
+      }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [handleSwipe]);
+  }, [handleSwipe, handleUndo]);
 
   if (!currentRepo) {
     return (
@@ -121,7 +160,7 @@ export default function SwipeDeck({ repos, onLoadMore, providerToken, onSwiped }
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
       <div className="relative flex-1 min-h-0">
         {visibleRepos.map((repo, i) => {
           const stackIndex = visibleRepos.length - 1 - i;
@@ -144,6 +183,38 @@ export default function SwipeDeck({ repos, onLoadMore, providerToken, onSwiped }
           );
         })}
       </div>
+
+      {/* One-step undo button. Slides up below the deck for ~6s after each swipe.
+          Disappears after timeout, on next swipe (replaced), or when used. */}
+      {lastSwipe && (
+        <div
+          className="absolute left-1/2 -translate-x-1/2 z-30 motion-safe:animate-[fadeIn_180ms_ease-out]"
+          style={{ bottom: 4 }}
+        >
+          <button
+            onClick={handleUndo}
+            disabled={undoing}
+            className="inline-flex items-center gap-2 bg-foreground text-background hover:opacity-90 active:opacity-80 transition-opacity rounded-full px-4 py-2 text-sm font-medium shadow-lg disabled:opacity-50"
+            style={{ boxShadow: "0 6px 20px rgba(0,0,0,0.18)" }}
+          >
+            {undoing ? (
+              <>
+                <svg className="w-4 h-4 motion-safe:animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" d="M21 12a9 9 0 11-6.219-8.56" />
+                </svg>
+                Undoing…
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 14l-4-4 4-4M5 10h11a4 4 0 014 4v3" />
+                </svg>
+                Undo {lastSwipe.direction === "right" ? "star" : "skip"}
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
