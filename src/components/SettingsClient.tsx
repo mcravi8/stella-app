@@ -155,7 +155,7 @@ export default function SettingsClient({ username, initialInterests, ownRepos, s
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-accent rounded-xl flex items-center justify-center">
               <svg viewBox="0 0 64 64" className="w-5 h-5" fill="none">
-                <path d="M20 18h16c4 0 8 3 8 7s-4 7-8 7H28c-2 0-4 1-4 3s2 3 4 3h16v8H28c-4 0-8-3-8-7s4-7 8-7h8c2 0 4-1 4-3s-2-3-4-3H20v-8z" fill="white"/>
+                <path d="M32 6L39 23L57 24L43 35L47 53L32 43L17 53L21 35L7 24L25 23Z" fill="white"/>
               </svg>
             </div>
             <span className="font-bold text-foreground text-lg">Stella</span>
