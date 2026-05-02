@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import SwipeCard, { type Repo } from "./SwipeCard";
 
 interface SwipeDeckProps {
@@ -19,6 +20,7 @@ type EnhanceState = "loading" | "done" | "failed";
 const PREFETCH_AHEAD = 5;
 
 export default function SwipeDeck({ repos, onLoadMore, providerToken, onSwiped }: SwipeDeckProps) {
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [enhancements, setEnhancements] = useState<Record<string, Enhancement>>({});
@@ -108,8 +110,12 @@ export default function SwipeDeck({ repos, onLoadMore, providerToken, onSwiped }
       setCurrentIndex(prev => prev + 1);
       setLastSwipe({ repo: swiped, direction });
       onSwiped?.(direction);
+      // Invalidate the client-side Router Cache so /my-repos refetches the
+      // fresh swipes list when the user navigates there. Without this the
+      // bottom-nav prefetch serves a stale RSC payload from before the swipe.
+      router.refresh();
     }
-  }, [currentRepo, isActionLoading, providerToken, onSwiped]);
+  }, [currentRepo, isActionLoading, providerToken, onSwiped, router]);
 
   const handleUndo = useCallback(async () => {
     if (!lastSwipe || undoing) return;
@@ -125,12 +131,13 @@ export default function SwipeDeck({ repos, onLoadMore, providerToken, onSwiped }
       });
       setCurrentIndex(prev => Math.max(0, prev - 1));
       setLastSwipe(null);
+      router.refresh();
     } catch (e) {
       console.error("Failed to undo swipe:", e);
     } finally {
       setUndoing(false);
     }
-  }, [lastSwipe, undoing, providerToken]);
+  }, [lastSwipe, undoing, providerToken, router]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
