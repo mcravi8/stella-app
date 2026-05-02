@@ -62,7 +62,7 @@ export default function SearchPage() {
       style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <nav className="shrink-0 border-b border-border bg-background/90 backdrop-blur-sm z-40">
-        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-accent rounded-xl flex items-center justify-center">
               <svg viewBox="0 0 64 64" className="w-5 h-5" fill="none">
@@ -71,7 +71,6 @@ export default function SearchPage() {
             </div>
             <span className="font-bold text-foreground text-lg">Stella</span>
           </Link>
-          <Link href="/" className="text-muted hover:text-foreground text-sm transition-colors">← Back</Link>
         </div>
       </nav>
 

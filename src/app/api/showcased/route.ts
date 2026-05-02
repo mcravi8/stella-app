@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
   const supabase = await createClient();
@@ -49,6 +50,17 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+  }
+
+  // Showcased repos render on the user's public profile. Bust the cache so
+  // the next navigation to that page reflects the change immediately.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("github_username")
+    .eq("user_id", user.id)
+    .single();
+  if (profile?.github_username) {
+    revalidatePath(`/profile/${profile.github_username}`);
   }
 
   return NextResponse.json({ success: true });

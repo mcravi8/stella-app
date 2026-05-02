@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
   const supabase = await createClient();
@@ -31,6 +32,11 @@ export async function POST(request: Request) {
       tags.map((tag: string) => ({ user_id: user.id, tag }))
     );
   }
+
+  // Interests change the personalised strategy rotation in /api/repos,
+  // and the home feed reads from there. Bust the home page's RSC cache so
+  // the user sees the new tailoring on next navigation home.
+  revalidatePath("/");
 
   return NextResponse.json({ success: true });
 }

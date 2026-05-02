@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 const MAX_BIO_LEN = 280;
 
@@ -40,6 +41,16 @@ export async function PATCH(request: Request) {
       { error: "Failed to save profile", details: error.message },
       { status: 500 }
     );
+  }
+
+  // Bio change shows on the user's public profile. Bust its cache.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("github_username")
+    .eq("user_id", user.id)
+    .single();
+  if (profile?.github_username) {
+    revalidatePath(`/profile/${profile.github_username}`);
   }
 
   return NextResponse.json({ success: true });
