@@ -37,29 +37,40 @@ export default function OnboardingPage() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">What are you into?</h1>
-          <p className="text-muted">Pick your interests and we&apos;ll show you repos you&apos;ll love</p>
+          <p className="text-muted">Pick anything that fits. We&apos;ll bias your feed toward what you&apos;d actually use — without locking you out of stuff you might not have heard of.</p>
         </div>
 
-        {Object.entries(INTEREST_TAGS).map(([section, tags]) => (
-          <div key={section} className="mb-8">
-            <h2 className="text-foreground font-semibold mb-3">{section}</h2>
-            <div className="flex flex-wrap gap-2">
-              {tags.map(tag => (
-                <button
-                  key={tag}
-                  onClick={() => toggle(tag)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    selected.has(tag)
-                      ? "bg-accent text-white"
-                      : "bg-surface border border-border text-muted hover:text-foreground hover:border-accent"
-                  }`}
-                >
-                  {tag}
-                </button>
-              ))}
+        {Object.entries(INTEREST_TAGS).map(([section, tags]) => {
+          const subtitle =
+            section === "Industries"
+              ? "What you do — biases the feed toward your domain plus adjacent things you'd reach for"
+              : section === "Languages"
+              ? "Your preferred languages"
+              : section === "Frameworks"
+              ? "Frameworks you reach for first"
+              : "Specific topics you want more of";
+          return (
+            <div key={section} className="mb-8">
+              <h2 className="text-foreground font-semibold mb-1">{section}</h2>
+              <p className="text-muted text-xs mb-3">{subtitle}</p>
+              <div className="flex flex-wrap gap-2">
+                {tags.map(tag => (
+                  <button
+                    key={tag}
+                    onClick={() => toggle(tag)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                      selected.has(tag)
+                        ? "bg-accent text-white"
+                        : "bg-surface border border-border text-muted hover:text-foreground hover:border-accent"
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         <div className="flex gap-3 mt-6">
           <button

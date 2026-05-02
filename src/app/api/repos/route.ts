@@ -74,6 +74,23 @@ const STRATEGIES = [
   // already heard of them.
   /* 28 */ (p: number) => ({ q: `stars:5000..10000 pushed:>${daysAgo(14)} created:>${daysAgo(365)}`, sort: "stars", page: p }),  // Mid-tier breakouts (newer, in-range, active)
   /* 29 */ (p: number) => ({ q: `stars:2000..10000 pushed:>${daysAgo(30)}`, sort: "updated", page: p }),                         // Mid-tier active (broader range, just needs recent activity)
+
+  // ─── Industry-specific gaps: domains the topical strategies above don't cover yet.
+  // Each industry in INTEREST_STRATEGY_MAP boosts a curated mix of these (direct)
+  // plus existing related strategies (e.g. Finance also boosts Python + Databases).
+  /* 30 */ (p: number) => ({ q: `topic:quantitative-finance stars:>200`, sort: "stars", page: p }),    // Quant finance
+  /* 31 */ (p: number) => ({ q: `topic:algorithmic-trading stars:>100`, sort: "stars", page: p }),     // Algo trading
+  /* 32 */ (p: number) => ({ q: `topic:fintech stars:>300`, sort: "stars", page: p }),                 // FinTech
+  /* 33 */ (p: number) => ({ q: `topic:time-series stars:>200`, sort: "stars", page: p }),             // Time-series (related to finance / data science)
+  /* 34 */ (p: number) => ({ q: `topic:trading-bot stars:>100 pushed:>${daysAgo(180)}`, sort: "stars", page: p }), // Trading bots
+  /* 35 */ (p: number) => ({ q: `topic:data-science stars:>500`, sort: "stars", page: p }),            // Data science (broad)
+  /* 36 */ (p: number) => ({ q: `topic:jupyter-notebook stars:>200`, sort: "stars", page: p }),        // Notebooks (DS / research)
+  /* 37 */ (p: number) => ({ q: `topic:deep-learning stars:>500`, sort: "stars", page: p }),           // Deep learning
+  /* 38 */ (p: number) => ({ q: `topic:bioinformatics stars:>100`, sort: "stars", page: p }),          // Bioinformatics
+  /* 39 */ (p: number) => ({ q: `topic:devops stars:>500`, sort: "stars", page: p }),                  // DevOps (broad)
+  /* 40 */ (p: number) => ({ q: `topic:kubernetes stars:>500`, sort: "stars", page: p }),              // Kubernetes
+  /* 41 */ (p: number) => ({ q: `topic:game-development stars:>300`, sort: "stars", page: p }),        // Game dev
+  /* 42 */ (p: number) => ({ q: `topic:research stars:>200`, sort: "stars", page: p }),                // Academic / research code
 ];
 
 function daysAgo(n: number): string {
@@ -182,7 +199,15 @@ export async function GET(request: Request) {
     // Non-fatal — proceed without swiped filtering, community repos, or external repos
   }
 
-  // Build personalized strategy pool based on user interests
+  // Build personalized strategy pool based on user interests.
+  //
+  // Each tag maps to a list of strategy indices that get front-loaded in the
+  // rotation. Industries map to a CURATED MIX of direct + related strategies —
+  // e.g. picking "Finance / Trading" doesn't only show trading repos, it also
+  // boosts Python, Databases, Time-series, and Mid-tier movers (all things a
+  // quant/finance person would actually pull into their stack). This is the
+  // "tailored slightly, not 100%" knob the user asked for: industries bias the
+  // feed without cornering it into one topic.
   const INTEREST_STRATEGY_MAP: Record<string, number[]> = {
     // Languages
     "Python": [5], "JavaScript": [4], "TypeScript": [4], "Rust": [8], "Go": [9],
@@ -194,6 +219,22 @@ export async function GET(request: Request) {
     "CLI Tools": [7], "Dev Tools": [3],
     "Robotics": [19], "Blockchain": [20], "Education": [21],
     "Databases": [22], "Security": [23],
+
+    // ─── Industries (broad role / domain) — each picks a curated mix of direct
+    // and adjacent strategies. The "Mid-tier breakouts" / "Mid-tier active"
+    // strategies (28, 29) appear across many industries so users see proven-but-
+    // not-yet-famous repos in their domain.
+    "Software Engineering":  [3, 7, 4, 9, 18, 27, 28],                   // dev tools + CLI + TS + Go + Backend + classics + mid-tier
+    "Data Science":          [35, 36, 2, 5, 33, 37, 28],                 // data-science + Jupyter + ML + Python + time-series + DL + mid-tier
+    "AI Research":           [37, 2, 10, 12, 13, 5, 36],                 // deep-learning + ML + AI + LLMs + agents + Python + Jupyter
+    "Finance / Trading":     [30, 31, 32, 33, 34, 5, 22, 28],            // quant + algo-trading + fintech + time-series + bots + Python + DBs + mid-tier
+    "Web Development":       [6, 14, 15, 16, 17, 4, 25, 28],             // frontend + React + Next + Vue + Svelte + TS + sleeper + mid-tier
+    "Mobile Development":    [11, 28, 29],                                // mobile + mid-tier breakouts + mid-tier active
+    "DevOps / Cloud":        [39, 40, 3, 9, 22, 28],                     // devops + kubernetes + dev tools + Go + DBs + mid-tier
+    "Game Dev":              [41, 28, 8, 26],                             // game-dev + mid-tier + Rust + hidden gems
+    "Bioinformatics":        [38, 35, 5, 36, 33],                         // bioinformatics + data-science + Python + Jupyter + time-series
+    "Cybersecurity":         [23, 7, 8, 28],                              // security + CLI + Rust + mid-tier
+    "Research / Academia":   [42, 35, 2, 5, 36, 38],                      // research + data-science + ML + Python + Jupyter + bioinformatics
   };
   let activeStrategies = STRATEGIES;
   if (userInterests.length > 0) {
