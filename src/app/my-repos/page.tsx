@@ -56,7 +56,7 @@ export default async function MyReposPage() {
                 <path d="M32 6L39 23L57 24L43 35L47 53L32 43L17 53L21 35L7 24L25 23Z" fill="white"/>
               </svg>
             </div>
-            <span className="font-bold text-foreground text-lg">My Repos</span>
+            <span className="font-bold text-foreground text-lg">My Starred Repos</span>
           </Link>
           <div className="ml-auto flex items-center gap-4">
             {contributionCount > 0 && (
